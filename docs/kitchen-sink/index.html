@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<html xmlns="http://www.w3.org/1999/xhtml" lang xml:lang>
 <head>
   <meta charset="utf-8" />
   <meta name="generator" content="pandoc-markdown-css-theme" />
@@ -7,9 +7,1167 @@
   <meta name="author" content="@jez" />
   <meta name="dcterms.date" content="2021-06-25" />
   <title>Kitchen Sink code</title>
-  <link rel="stylesheet" href="../css/theme.css" />
-  <link rel="stylesheet" href="../css/skylighting-solarized-theme.css" />
-  <script defer="" src="https://cdn.jsdelivr.net/npm/katex@0.15.1/dist/katex.min.js"></script>
+  <style type="text/css">
+
+:root {
+
+--background-color: #fff;
+--color-text: #1b2733;
+--color-text-secondary: #637282;
+--color-link: #0070e0;
+--color-sidenote: #616970;
+--highlight-red: #ea9999;
+--highlight-yellow: #ffe599;
+--highlight-green: #b6d7a8;
+--highlight-blue: #a4c2f4;
+--highlight-purple: #b4a7d6;
+--color-inline-code: #1b2733;
+--color-inline-code-bg: #f3f3f8;
+--color-border: #dfdfd0;
+--color-border-heavy: #ccccd4;
+--color-table-heading: #f3f3fb;
+
+--font-family-prose: system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen,Ubuntu,Cantarell,"Open Sans","Helvetica Neue",sans-serif;
+--font-family-heading: system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen,Ubuntu,Cantarell,"Open Sans","Helvetica Neue",sans-serif;
+--font-family-code: Menlo, monospace;
+--side-note-number-font-family: var(--font-family-prose);
+--line-height: 26px;
+--font-size: 17px;
+--inline-code-font-size: 15px;
+--code-block-font-size: 14px;
+--code-block-side-padding: 8px;
+--line-numbers-font-size: 12px;
+--tight-code-line-height: 18px;
+--tight-code-padding-top: 5px;
+--side-note-line-height: 20px;
+--side-note-font-size: 13px;
+--side-note-code-font-size: 13px;
+--side-note-baseline-offset: 4px;
+--side-note-sup-offset: -6px;
+--side-note-number-hang-left: -6px;
+--side-note-text-indent: -9px;
+--heading-font-weight: 500;
+--title-font-size: 42px;
+--title-code-font-size: 40px;
+--title-line-height: 48px;
+--title-margin-top: 92px;
+--h1-font-size: 32px;
+--h1-code-font-size: 29px;
+--h1-line-height: 36px;
+--h1-word-spacing: 1px;
+--h1-margin-top: 30px;
+--h1-margin-bottom: 12px;
+--h2-font-size: 22px;
+--h2-code-font-size: 20px;
+--h2-line-height: 28px;
+--h2-word-spacing: 0.5px;
+--h2-margin-top: 18px;
+--h2-margin-bottom: 6px;
+--ul-indent-size: 23px;
+--ol-indent-size: 19px;
+--ol-li-padding-left: 4px;
+--hr-margin-top: 18px;
+--hr-margin-bottom: calc(var(--line-height) - var(--hr-margin-top) - 1px);
+--extra-wide-scale-factor: 1.5;
+--figcaption-line-height: 21px;
+--figcaption-font-size: 14px;
+--figcaption-code-font-size: 13px;
+--figcaption-gap: 6px;
+--captioned-figure-gap: 10px;
+--table-line-height: 21px;
+--table-font-size: 14px;
+--table-code-font-size: 13px;
+--nav-toc-font-size: 12px;
+--nav-toc-code-font-size: 12px;
+--nav-toc-indent: 15px;
+--nav-toc-baseline-offset: 2px;
+
+--main-width: 745px;
+
+--main-width-narrow: 550px;
+--side-note-max-width: 300px;
+}
+@media (prefers-color-scheme: dark) {
+:root {
+--background-color: #161313;
+--color-text: #f7f5f2;
+--color-text-secondary: #9d9b99;
+--color-link: #2994ff;
+--color-sidenote: #b4b2af;
+--highlight-red: #660000;
+--highlight-yellow: #7f6000;
+--highlight-green: #274e13;
+--highlight-blue: #1c4587;
+--highlight-purple: #351c75;
+--color-inline-code: #f7f5f2;
+--color-inline-code-bg: #242121;
+--color-border: #393635;
+--color-border-heavy: #524f4d;
+--color-table-heading: #242121;
+}
+}
+*, *:after, *:before {
+box-sizing: border-box;
+margin: 0;
+padding: 0;
+-webkit-tap-highlight-color: rgba(0,0,0,0);
+-webkit-font-smoothing: antialiased;
+-moz-osx-font-smoothing: grayscale;
+}
+html {
+
+-webkit-text-size-adjust: 100%;
+}
+body {
+font-family: var(--font-family-prose);
+color: var(--color-text);
+font-size: var(--font-size);
+line-height: var(--line-height);
+-webkit-font-variant-ligatures: no-common-ligatures;
+font-variant-ligatures: no-common-ligatures;
+
+hanging-punctuation: first;
+margin: 0;
+padding: 0;
+padding-top: var(--title-margin-top);
+width: 100%;
+background-color: var(--background-color);
+}
+@media print {
+body {
+background-color: initial;
+}
+}
+
+
+.only-light-mode {
+display: inherit;
+}
+.only-dark-mode {
+display: none;
+}
+@media (prefers-color-scheme: dark) {
+.only-light-mode {
+display: none;
+}
+.only-dark-mode {
+display: inherit;
+}
+}
+
+
+
+.sidenote,
+.marginnote {
+color: var(--color-sidenote);
+font-size: var(--side-note-font-size);
+line-height: var(--side-note-line-height);
+vertical-align: baseline;
+
+margin-top: var(--side-note-baseline-offset);
+}
+.sidenote code,
+.marginnote code {
+color: var(--color-sidenote);
+}
+main {
+counter-reset: sidenote-counter;
+}
+.sidenote-number {
+counter-increment: sidenote-counter;
+}
+.sidenote-number:after,
+.sidenote:before {
+content: counter(sidenote-counter);
+position: relative;
+}
+nav#TOC label,
+label.margin-toggle:not(.sidenote-number),
+.sidenote-number:after,
+.sidenote:before,
+.footnote-ref sup,
+sup {
+font-size: var(--side-note-font-size);
+font-weight: 700;
+font-family: var(--side-note-number-font-family);
+-webkit-font-feature-settings: "tnum" 1;
+font-feature-settings: "tnum" 1;
+
+vertical-align: baseline;
+position: relative;
+top: var(--side-note-sup-offset);
+}
+sup {
+font-weight: inherit;
+}
+
+.sidenote:before { left: var(--side-note-number-hang-left); }
+
+.sidenote { text-indent: var(--side-note-text-indent); }
+
+
+input.margin-toggle {
+display: none;
+}
+label.margin-toggle:not(.sidenote-number) {
+display: none;
+}
+label.sidenote-number {
+display: inline;
+}
+
+@media screen and (max-width: calc(26px + 550px + 26px + 169px + 26px - 1px)) {
+.margin-toggle:checked + .sidenote,
+.margin-toggle:checked + .marginnote {
+margin-top: var(--side-note-line-height);
+vertical-align: baseline;
+}
+label.margin-toggle {
+color: var(--color-link);
+}
+label.margin-toggle:not(.sidenote-number) {
+display: inline;
+}
+label {
+cursor: pointer;
+}
+}
+
+
+
+h1, h2 {
+font-family: var(--font-family-heading);
+font-weight: var(--heading-font-weight);
+}
+h4, h5, h6 {
+font-weight: normal;
+}
+h1.title {
+margin-top: var(--line-height);
+margin-bottom: var(--line-height);
+font-size: var(--title-font-size);
+line-height: var(--title-line-height);
+}
+h1.title code {
+font-size: var(--title-code-font-size);
+}
+h1:not(.title) {
+font-size: var(--h1-font-size);
+line-height: var(--h1-line-height);
+word-spacing: var(--h1-word-spacing);
+margin-top: var(--h1-margin-top);
+margin-bottom: var(--h1-margin-bottom);
+}
+h1:not(.title) code {
+font-size: var(--h1-code-font-size);
+}
+h2 {
+font-size: var(--h2-font-size);
+line-height: var(--h2-line-height);
+word-spacing: var(--h2-word-spacing);
+margin-top: var(--h2-margin-top);
+margin-bottom: var(--h2-margin-bottom);
+}
+h2 code {
+font-size: var(--h2-code-font-size);
+}
+h3 {
+font-size: var(--font-size);
+line-height: var(--line-height);
+font-weight: bold;
+}
+h1:not(.title) + *, h1:not(.title) + p { margin-top: var(--h1-margin-bottom); }
+h2 + *, h2 + p { margin-top: var(--h2-margin-bottom); }
+h3 + *, h3 + p { margin-top: 0; }
+
+
+p, main > ul, main > ol, div.sourceCode, main > pre, img, table {
+margin-top: var(--line-height);
+margin-bottom: var(--line-height)
+}
+ul:not(.task-list) {
+margin-left: var(--ul-indent-size);
+}
+ol {
+margin-left: var(--ol-indent-size);
+}
+ul.task-list {
+list-style: none;
+margin-left: var(--ul-indent-size);
+}
+ul.task-list > li {
+position: relative;
+}
+ul.task-list > li > input[type="checkbox"] {
+position: absolute;
+left: calc(-1 * var(--ul-indent-size));
+height: var(--line-height);
+}
+ol > li {
+padding-left: var(--ol-li-padding-left);
+}
+ol { list-style-type: decimal; }
+ol ol { list-style-type: lower-alpha; }
+ol ol ol { list-style-type: lower-roman; }
+ol ol ol ol { list-style-type: decimal; }
+ol ol ol ol ol { list-style-type: lower-alpha; }
+ol ol ol ol ol ol { list-style-type: lower-roman; }
+ol ol ol ol ol ol ol { list-style-type: decimal; }
+ol ol ol ol ol ol ol ol { list-style-type: lower-alpha; }
+ol ol ol ol ol ol ol ol ol { list-style-type: lower-roman; }
+ul { list-style-type: disc; }
+ul ul { list-style-type: circle; }
+ul ul ul { list-style-type: square; }
+ul ul ul ul { list-style-type: disc; }
+ul ul ul ul ul { list-style-type: circle; }
+ul ul ul ul ul ul { list-style-type: square; }
+ul ul ul ul ul ul ul { list-style-type: disc; }
+ul ul ul ul ul ul ul ul { list-style-type: circle; }
+ul ul ul ul ul ul ul ul ul { list-style-type: square; }
+blockquote {
+border-left: 1px solid var(--color-text-secondary);
+padding-left: 1.5rem;
+font-style: italic;
+}
+blockquote > p {
+margin-top: 0;
+}
+blockquote em, blockquote i, blockquote .sidenote-wrapper {
+font-style: normal;
+}
+hr {
+margin-top: var(--hr-margin-top);
+margin-bottom: var(--hr-margin-bottom);
+border-style: solid;
+color: var(--color-border-heavy);
+border-width: 1px 0 0;
+}
+a code, a:link code, a:visited code,
+a, a:link, a:visited {
+color: var(--color-link);
+text-decoration: none;
+}
+a:hover {
+text-decoration: underline;
+}
+span.mark, mark {
+
+color: inherit;
+padding: 2px 0 1px;
+}
+span.mark.red, mark.red { background-color: var(--highlight-red); }
+span.mark.yellow, mark.yellow { background-color: var(--highlight-yellow); }
+span.mark.green, mark.green { background-color: var(--highlight-green); }
+span.mark.blue, mark.blue { background-color: var(--highlight-blue); }
+span.mark.purple, mark.purple { background-color: var(--highlight-purple); }
+.subtitle {
+margin-top: 0;
+}
+.author, .date {
+margin-top: 0;
+margin-bottom: 0;
+}
+.signoff {
+margin-top: calc(4 * var(--line-height));
+margin-bottom: calc(4 * var(--line-height));
+}
+
+span.smallcaps{ font-variant: small-caps; }
+span.underline{ text-decoration: underline; }
+.katex-display {
+background: var(--background-color);
+transform: translateZ(0px);
+}
+@media print {
+.katex-display {
+background-color: initial;
+}
+}
+
+
+
+code {
+font-family: var(--font-family-code);
+word-spacing: normal;
+
+color: var(--color-inline-code);
+background-color: var(--color-inline-code-bg);
+font-size: var(--inline-code-font-size);
+margin: 0;
+padding: 2px 0 1px;
+border: 1px solid var(--color-border);
+border-radius: 1px;
+}
+.sidenote code,
+.marginnote code {
+font-size: var(--side-note-code-font-size);
+}
+pre code {
+
+color: inherit;
+background-color: inherit;
+font-size: var(--code-block-font-size);
+line-height: var(--line-height);
+margin: initial;
+padding: initial;
+border: initial;
+border-radius: initial;
+}
+pre > code {
+position: relative; 
+display: inline-block;
+min-width: 100%;
+z-index: 1;
+white-space: pre-wrap;
+padding: 0 var(--code-block-side-padding);
+}
+.wide > pre, .wide > div.sourceCode {
+
+transform: translateZ(0px);
+}
+.wide pre > code {
+white-space: pre;
+}
+pre.numberSource code {
+counter-reset: source-line 0;
+}
+pre > code.sourceCode > span {
+line-height: var(--line-height);
+display: inline-block;
+position: relative;
+}
+div.sourceCode {
+
+--line-numbers-width: calc(4 * var(--line-numbers-font-size));
+--line-numbers-negative-width: calc(-1 * var(--line-numbers-width));
+margin-left: var(--line-numbers-negative-width);
+}
+div.sourceCode > pre {
+margin-left: var(--line-numbers-width);
+}
+pre.numberSource > code.sourceCode > span {
+counter-increment: source-line;
+padding-left: var(--line-numbers-width);
+text-indent: var(--line-numbers-negative-width);
+margin-left: var(--line-numbers-negative-width);
+}
+pre.numberSource > code.sourceCode > span > a:first-child::before {
+-webkit-touch-callout: none;
+-webkit-user-select: none;
+-khtml-user-select: none;
+-moz-user-select: none;
+-ms-user-select: none;
+user-select: none;
+content: counter(source-line);
+font-size: var(--line-numbers-font-size);
+text-decoration: none;
+position: relative;
+text-align: right;
+display: inline-block;
+padding: 0 calc(2 * var(--code-block-side-padding));
+width: var(--line-numbers-width);
+}
+pre > code.sourceCode > span > a:first-child::before:hover {
+text-decoration: underline;
+}
+
+.tight-code pre,
+pre.tight-code {
+padding-top: var(--tight-code-padding-top);
+}
+pre.tight-code code,
+.tight-code pre code,
+.tight-code pre > code.sourceCode > span,
+pre.tight-code > code.sourceCode > span {
+line-height: var(--tight-code-line-height);
+}
+
+
+pre > code.sourceCode > span::after {
+position: absolute;
+background-color: var(--color-code-highlight-bg);
+z-index: -1;
+left: calc(-1 * var(--code-block-side-padding));
+right: calc(-1 * var(--code-block-side-padding));
+top: 0;
+height: 100%;
+}
+pre.numberSource > code.sourceCode > span::after {
+left: calc(var(--line-numbers-width) - var(--code-block-side-padding));
+}
+pre.hl-1 > code.sourceCode > span:nth-of-type(1)::after { content: ""; }
+pre.hl-2 > code.sourceCode > span:nth-of-type(2)::after { content: ""; }
+pre.hl-3 > code.sourceCode > span:nth-of-type(3)::after { content: ""; }
+pre.hl-4 > code.sourceCode > span:nth-of-type(4)::after { content: ""; }
+pre.hl-5 > code.sourceCode > span:nth-of-type(5)::after { content: ""; }
+pre.hl-6 > code.sourceCode > span:nth-of-type(6)::after { content: ""; }
+pre.hl-7 > code.sourceCode > span:nth-of-type(7)::after { content: ""; }
+pre.hl-8 > code.sourceCode > span:nth-of-type(8)::after { content: ""; }
+pre.hl-9 > code.sourceCode > span:nth-of-type(9)::after { content: ""; }
+pre.hl-10 > code.sourceCode > span:nth-of-type(10)::after { content: ""; }
+pre.hl-11 > code.sourceCode > span:nth-of-type(11)::after { content: ""; }
+pre.hl-12 > code.sourceCode > span:nth-of-type(12)::after { content: ""; }
+pre.hl-13 > code.sourceCode > span:nth-of-type(13)::after { content: ""; }
+pre.hl-14 > code.sourceCode > span:nth-of-type(14)::after { content: ""; }
+pre.hl-15 > code.sourceCode > span:nth-of-type(15)::after { content: ""; }
+pre.hl-16 > code.sourceCode > span:nth-of-type(16)::after { content: ""; }
+pre.hl-17 > code.sourceCode > span:nth-of-type(17)::after { content: ""; }
+pre.hl-18 > code.sourceCode > span:nth-of-type(18)::after { content: ""; }
+pre.hl-19 > code.sourceCode > span:nth-of-type(19)::after { content: ""; }
+pre.hl-20 > code.sourceCode > span:nth-of-type(20)::after { content: ""; }
+pre.hl-21 > code.sourceCode > span:nth-of-type(21)::after { content: ""; }
+pre.hl-22 > code.sourceCode > span:nth-of-type(22)::after { content: ""; }
+pre.hl-23 > code.sourceCode > span:nth-of-type(23)::after { content: ""; }
+pre.hl-24 > code.sourceCode > span:nth-of-type(24)::after { content: ""; }
+pre.hl-25 > code.sourceCode > span:nth-of-type(25)::after { content: ""; }
+pre.hl-26 > code.sourceCode > span:nth-of-type(26)::after { content: ""; }
+pre.hl-27 > code.sourceCode > span:nth-of-type(27)::after { content: ""; }
+pre.hl-28 > code.sourceCode > span:nth-of-type(28)::after { content: ""; }
+pre.hl-29 > code.sourceCode > span:nth-of-type(29)::after { content: ""; }
+pre.hl-30 > code.sourceCode > span:nth-of-type(30)::after { content: ""; }
+pre.hl-31 > code.sourceCode > span:nth-of-type(31)::after { content: ""; }
+pre.hl-32 > code.sourceCode > span:nth-of-type(32)::after { content: ""; }
+pre.hl-33 > code.sourceCode > span:nth-of-type(33)::after { content: ""; }
+pre.hl-34 > code.sourceCode > span:nth-of-type(34)::after { content: ""; }
+pre.hl-35 > code.sourceCode > span:nth-of-type(35)::after { content: ""; }
+pre.hl-36 > code.sourceCode > span:nth-of-type(36)::after { content: ""; }
+pre.hl-37 > code.sourceCode > span:nth-of-type(37)::after { content: ""; }
+pre.hl-38 > code.sourceCode > span:nth-of-type(38)::after { content: ""; }
+pre.hl-39 > code.sourceCode > span:nth-of-type(39)::after { content: ""; }
+pre.hl-40 > code.sourceCode > span:nth-of-type(40)::after { content: ""; }
+
+pre.hl-1 > code.sourceCode > span:nth-of-type(1) { min-width: 100%; }
+pre.hl-2 > code.sourceCode > span:nth-of-type(2) { min-width: 100%; }
+pre.hl-3 > code.sourceCode > span:nth-of-type(3) { min-width: 100%; }
+pre.hl-4 > code.sourceCode > span:nth-of-type(4) { min-width: 100%; }
+pre.hl-5 > code.sourceCode > span:nth-of-type(5) { min-width: 100%; }
+pre.hl-6 > code.sourceCode > span:nth-of-type(6) { min-width: 100%; }
+pre.hl-7 > code.sourceCode > span:nth-of-type(7) { min-width: 100%; }
+pre.hl-8 > code.sourceCode > span:nth-of-type(8) { min-width: 100%; }
+pre.hl-9 > code.sourceCode > span:nth-of-type(9) { min-width: 100%; }
+pre.hl-10 > code.sourceCode > span:nth-of-type(10) { min-width: 100%; }
+pre.hl-11 > code.sourceCode > span:nth-of-type(11) { min-width: 100%; }
+pre.hl-12 > code.sourceCode > span:nth-of-type(12) { min-width: 100%; }
+pre.hl-13 > code.sourceCode > span:nth-of-type(13) { min-width: 100%; }
+pre.hl-14 > code.sourceCode > span:nth-of-type(14) { min-width: 100%; }
+pre.hl-15 > code.sourceCode > span:nth-of-type(15) { min-width: 100%; }
+pre.hl-16 > code.sourceCode > span:nth-of-type(16) { min-width: 100%; }
+pre.hl-17 > code.sourceCode > span:nth-of-type(17) { min-width: 100%; }
+pre.hl-18 > code.sourceCode > span:nth-of-type(18) { min-width: 100%; }
+pre.hl-19 > code.sourceCode > span:nth-of-type(19) { min-width: 100%; }
+pre.hl-20 > code.sourceCode > span:nth-of-type(20) { min-width: 100%; }
+pre.hl-21 > code.sourceCode > span:nth-of-type(21) { min-width: 100%; }
+pre.hl-22 > code.sourceCode > span:nth-of-type(22) { min-width: 100%; }
+pre.hl-23 > code.sourceCode > span:nth-of-type(23) { min-width: 100%; }
+pre.hl-24 > code.sourceCode > span:nth-of-type(24) { min-width: 100%; }
+pre.hl-25 > code.sourceCode > span:nth-of-type(25) { min-width: 100%; }
+pre.hl-26 > code.sourceCode > span:nth-of-type(26) { min-width: 100%; }
+pre.hl-27 > code.sourceCode > span:nth-of-type(27) { min-width: 100%; }
+pre.hl-28 > code.sourceCode > span:nth-of-type(28) { min-width: 100%; }
+pre.hl-29 > code.sourceCode > span:nth-of-type(29) { min-width: 100%; }
+pre.hl-30 > code.sourceCode > span:nth-of-type(30) { min-width: 100%; }
+pre.hl-31 > code.sourceCode > span:nth-of-type(31) { min-width: 100%; }
+pre.hl-32 > code.sourceCode > span:nth-of-type(32) { min-width: 100%; }
+pre.hl-33 > code.sourceCode > span:nth-of-type(33) { min-width: 100%; }
+pre.hl-34 > code.sourceCode > span:nth-of-type(34) { min-width: 100%; }
+pre.hl-35 > code.sourceCode > span:nth-of-type(35) { min-width: 100%; }
+pre.hl-36 > code.sourceCode > span:nth-of-type(36) { min-width: 100%; }
+pre.hl-37 > code.sourceCode > span:nth-of-type(37) { min-width: 100%; }
+pre.hl-38 > code.sourceCode > span:nth-of-type(38) { min-width: 100%; }
+pre.hl-39 > code.sourceCode > span:nth-of-type(39) { min-width: 100%; }
+pre.hl-40 > code.sourceCode > span:nth-of-type(40) { min-width: 100%; }
+pre.numberSource.hl-1 > code.sourceCode > span:nth-of-type(1) { min-width: calc(100% + var(--line-numbers-width)); }
+pre.numberSource.hl-2 > code.sourceCode > span:nth-of-type(2) { min-width: calc(100% + var(--line-numbers-width)); }
+pre.numberSource.hl-3 > code.sourceCode > span:nth-of-type(3) { min-width: calc(100% + var(--line-numbers-width)); }
+pre.numberSource.hl-4 > code.sourceCode > span:nth-of-type(4) { min-width: calc(100% + var(--line-numbers-width)); }
+pre.numberSource.hl-5 > code.sourceCode > span:nth-of-type(5) { min-width: calc(100% + var(--line-numbers-width)); }
+pre.numberSource.hl-6 > code.sourceCode > span:nth-of-type(6) { min-width: calc(100% + var(--line-numbers-width)); }
+pre.numberSource.hl-7 > code.sourceCode > span:nth-of-type(7) { min-width: calc(100% + var(--line-numbers-width)); }
+pre.numberSource.hl-8 > code.sourceCode > span:nth-of-type(8) { min-width: calc(100% + var(--line-numbers-width)); }
+pre.numberSource.hl-9 > code.sourceCode > span:nth-of-type(9) { min-width: calc(100% + var(--line-numbers-width)); }
+pre.numberSource.hl-10 > code.sourceCode > span:nth-of-type(10) { min-width: calc(100% + var(--line-numbers-width)); }
+pre.numberSource.hl-11 > code.sourceCode > span:nth-of-type(11) { min-width: calc(100% + var(--line-numbers-width)); }
+pre.numberSource.hl-12 > code.sourceCode > span:nth-of-type(12) { min-width: calc(100% + var(--line-numbers-width)); }
+pre.numberSource.hl-13 > code.sourceCode > span:nth-of-type(13) { min-width: calc(100% + var(--line-numbers-width)); }
+pre.numberSource.hl-14 > code.sourceCode > span:nth-of-type(14) { min-width: calc(100% + var(--line-numbers-width)); }
+pre.numberSource.hl-15 > code.sourceCode > span:nth-of-type(15) { min-width: calc(100% + var(--line-numbers-width)); }
+pre.numberSource.hl-16 > code.sourceCode > span:nth-of-type(16) { min-width: calc(100% + var(--line-numbers-width)); }
+pre.numberSource.hl-17 > code.sourceCode > span:nth-of-type(17) { min-width: calc(100% + var(--line-numbers-width)); }
+pre.numberSource.hl-18 > code.sourceCode > span:nth-of-type(18) { min-width: calc(100% + var(--line-numbers-width)); }
+pre.numberSource.hl-19 > code.sourceCode > span:nth-of-type(19) { min-width: calc(100% + var(--line-numbers-width)); }
+pre.numberSource.hl-20 > code.sourceCode > span:nth-of-type(20) { min-width: calc(100% + var(--line-numbers-width)); }
+pre.numberSource.hl-21 > code.sourceCode > span:nth-of-type(21) { min-width: calc(100% + var(--line-numbers-width)); }
+pre.numberSource.hl-22 > code.sourceCode > span:nth-of-type(22) { min-width: calc(100% + var(--line-numbers-width)); }
+pre.numberSource.hl-23 > code.sourceCode > span:nth-of-type(23) { min-width: calc(100% + var(--line-numbers-width)); }
+pre.numberSource.hl-24 > code.sourceCode > span:nth-of-type(24) { min-width: calc(100% + var(--line-numbers-width)); }
+pre.numberSource.hl-25 > code.sourceCode > span:nth-of-type(25) { min-width: calc(100% + var(--line-numbers-width)); }
+pre.numberSource.hl-26 > code.sourceCode > span:nth-of-type(26) { min-width: calc(100% + var(--line-numbers-width)); }
+pre.numberSource.hl-27 > code.sourceCode > span:nth-of-type(27) { min-width: calc(100% + var(--line-numbers-width)); }
+pre.numberSource.hl-28 > code.sourceCode > span:nth-of-type(28) { min-width: calc(100% + var(--line-numbers-width)); }
+pre.numberSource.hl-29 > code.sourceCode > span:nth-of-type(29) { min-width: calc(100% + var(--line-numbers-width)); }
+pre.numberSource.hl-30 > code.sourceCode > span:nth-of-type(30) { min-width: calc(100% + var(--line-numbers-width)); }
+pre.numberSource.hl-31 > code.sourceCode > span:nth-of-type(31) { min-width: calc(100% + var(--line-numbers-width)); }
+pre.numberSource.hl-32 > code.sourceCode > span:nth-of-type(32) { min-width: calc(100% + var(--line-numbers-width)); }
+pre.numberSource.hl-33 > code.sourceCode > span:nth-of-type(33) { min-width: calc(100% + var(--line-numbers-width)); }
+pre.numberSource.hl-34 > code.sourceCode > span:nth-of-type(34) { min-width: calc(100% + var(--line-numbers-width)); }
+pre.numberSource.hl-35 > code.sourceCode > span:nth-of-type(35) { min-width: calc(100% + var(--line-numbers-width)); }
+pre.numberSource.hl-36 > code.sourceCode > span:nth-of-type(36) { min-width: calc(100% + var(--line-numbers-width)); }
+pre.numberSource.hl-37 > code.sourceCode > span:nth-of-type(37) { min-width: calc(100% + var(--line-numbers-width)); }
+pre.numberSource.hl-38 > code.sourceCode > span:nth-of-type(38) { min-width: calc(100% + var(--line-numbers-width)); }
+pre.numberSource.hl-39 > code.sourceCode > span:nth-of-type(39) { min-width: calc(100% + var(--line-numbers-width)); }
+pre.numberSource.hl-40 > code.sourceCode > span:nth-of-type(40) { min-width: calc(100% + var(--line-numbers-width)); }
+
+
+
+
+figure {
+margin-bottom: var(--captioned-figure-gap);
+}
+figure + p {
+margin-top: var(--captioned-figure-gap);
+}
+figure > img, figure > pre, figure > div.sourceCode {
+margin-bottom: var(--figcaption-gap);
+}
+img {
+width: 100%;
+display: block;
+}
+.wide img {
+
+transform: translateZ(0px);
+}
+figcaption {
+font-size: var(--figcaption-font-size);
+line-height: var(--figcaption-line-height);
+font-style: italic;
+text-align: center;
+color: var(--color-text-secondary);
+}
+.left-align-caption figcaption {
+text-align: left;
+}
+figcaption code {
+font-size: var(--figcaption-code-font-size);
+}
+
+
+table {
+-webkit-font-feature-settings: "tnum" 1;
+font-feature-settings: "tnum" 1;
+font-size: var(--table-font-size);
+line-height: var(--table-line-height);
+border-spacing: 0;
+border-collapse: collapse;
+border: 1px solid var(--color-border-heavy);
+width: 100%;
+
+background-color: var(--background-color);
+}
+thead, tbody {
+vertical-align: top;
+}
+td > *:first-child {
+margin-top: 0;
+}
+td > *:last-child {
+margin-bottom: 0;
+}
+@media print {
+table {
+background-color: initial;
+}
+}
+table code {
+font-size: var(--table-code-font-size);
+}
+table pre code {
+font-size: inherit;
+}
+.wide table {
+
+transform: translateZ(0px);
+}
+table td, table th {
+border: 1px solid var(--color-border-heavy);
+padding: 5px 8px;
+min-width: 100px;
+}
+table th {
+background-color: var(--color-table-heading);
+}
+table > caption {
+caption-side: bottom;
+margin-top: var(--figcaption-gap);
+margin-bottom: calc(var(--captioned-figure-gap) - var(--line-height));
+font-size: var(--figcaption-font-size);
+line-height: var(--figcaption-line-height);
+font-style: italic;
+text-align: center;
+color: var(--color-text-secondary);
+}
+.left-align-caption table > caption {
+text-align: left;
+}
+table > caption code {
+font-size: var(--figcaption-code-font-size);
+}
+
+.note table {
+font-size: inherit;
+line-height: inherit;
+}
+.note table, .note td {
+border: none;
+}
+.note.red td { background: var(--highlight-red); }
+.note.yellow td { background: var(--highlight-yellow); }
+.note.green td { background: var(--highlight-green); }
+.note.blue td { background: var(--highlight-blue); }
+.note.purple td { background: var(--highlight-purple); }
+
+
+.date.before-toc {
+padding-bottom: var(--line-height);
+}
+nav#TOC {
+margin-bottom: var(--line-height);
+border-left: 1px solid var(--color-text-secondary);
+padding-left: 1.5rem;
+}
+nav#TOC input {
+display: none;
+}
+nav#TOC label {
+color: var(--color-link);
+cursor: pointer;
+}
+nav#TOC > ul {
+display: none;
+}
+nav#TOC > input:checked + ul {
+display: block;
+}
+@media print {
+nav#TOC > input + ul {
+display: block;
+}
+}
+
+@media screen and (min-width: calc(745px + 2 * (52px + 206px + 52px) - 1px)) {
+header {
+margin-bottom: var(--line-height);
+}
+.date.before-toc {
+padding-bottom: initial;
+}
+nav#TOC {
+
+margin-bottom: initial;
+border-left: initial;
+padding-left: initial;
+position: sticky;
+margin-top: calc(var(--nav-toc-baseline-offset));
+float: left;
+top: var(--line-height);
+font-size: var(--nav-toc-font-size);
+color: var(--color-text-secondary);
+margin-left: var(--line-height);
+max-width: calc((100vw - var(--main-width)) / 2 - 2 * var(--line-height));
+max-height: calc(100vh - 2 * var(--line-height));
+overflow-y: auto;
+}
+nav#TOC label {
+display: none;
+}
+nav#TOC ul {
+display: block;
+list-style: none;
+margin-left: var(--nav-toc-indent);
+}
+nav#TOC > ul {
+margin-left: 0;
+}
+nav#TOC li {
+white-space: nowrap;
+overflow: hidden;
+text-overflow: ellipsis;
+}
+nav#TOC code {
+font-size: var(--nav-toc-code-font-size);
+}
+nav#TOC code,
+nav#TOC a,
+nav#TOD a:link,
+nav#TOD a:visited {
+color: var(--color-text-secondary);
+}
+nav#TOC a:hover,
+nav#TOC a:hover code {
+text-decoration: none;
+color: var(--color-link);
+}
+}
+
+
+.sidenote,
+.marginnote {
+float: right;
+clear: right;
+position: relative;
+width: var(--computed-width);
+max-width: var(--side-note-max-width);
+margin-right: calc(-1 * min(var(--computed-width), var(--side-note-max-width)) - var(--margin-left));
+}
+
+
+@media screen and (min-width: calc(745px + 2 * (52px + 206px + 52px))) {
+header,
+main,
+footer {
+max-width: var(--main-width);
+}
+header,
+main,
+footer {
+margin-left: auto;
+margin-right: auto;
+}
+.sidenote,
+.marginnote {
+--margin-left: calc(2 * var(--line-height));
+--margin-right: var(--margin-left);
+--computed-width: calc((100vw - 100%) / 2 - var(--margin-right) - var(--margin-left));
+}
+.wide {
+width: 100%;
+overflow-x: auto;
+}
+.wide.extra-wide {
+margin-left: calc((1 - var(--extra-wide-scale-factor)) / 2 * 100%);
+width: calc(var(--extra-wide-scale-factor) * 100%);
+}
+.wide.full-width {
+margin-left: calc(var(--line-height) - ((100vw - var(--main-width)) / 2));
+width: calc(100vw - 2 * var(--line-height));
+}
+.wide.extra-wide figcaption,
+.wide.extra-wide table > caption {
+margin-left: calc(((var(--extra-wide-scale-factor) - 1) / 2) * var(--main-width));
+max-width: var(--main-width);
+margin-right: calc(100% - var(--main-width) - (((var(--extra-wide-scale-factor) - 1) / 2) * var(--main-width)));
+}
+.wide.full-width figcaption,
+.wide.full-width table > caption {
+margin-left: calc((100vw - var(--main-width)) / 2 - var(--line-height));
+max-width: var(--main-width);
+margin-right: calc(100% - var(--main-width) - ((100vw - var(--main-width)) / 2 - var(--line-height)));
+}
+}
+
+
+
+@media screen and (min-width: calc(52px + 745px + 52px + 206px + 52px)) and (max-width: calc(745px + 2 * (52px + 206px + 52px) - 1px)) {
+header,
+nav#TOC,
+main,
+footer {
+margin-left: calc(2 * var(--line-height));
+max-width: var(--main-width);
+margin-right: auto;
+}
+.sidenote,
+.marginnote {
+--margin-left: calc(2 * var(--line-height));
+--margin-right: var(--margin-left);
+--computed-width: calc(100vw - var(--main-width) - calc(2 * var(--line-height)) - var(--margin-right) - var(--margin-left));
+}
+.wide {
+width: 100%;
+overflow-x: auto;
+overflow-y: hidden;
+}
+.wide.extra-wide {
+margin-left: calc(-1 * var(--line-height));
+width: calc(100vw - 2 * var(--line-height));
+max-width: calc(var(--extra-wide-scale-factor) * var(--main-width));
+}
+.wide.full-width {
+margin-left: calc(-1 * var(--line-height));
+width: calc(100vw - 2 * var(--line-height));
+max-width: calc(100vw - 2 * var(--line-height));
+}
+.wide.extra-wide .katex-display,
+.wide.full-width .katex-display {
+padding-left: var(--line-height);
+padding-right: var(--line-height);
+}
+.wide.extra-wide .katex-display,
+.wide.extra-wide .katex-display > .katex,
+.wide.full-width .katex-display,
+.wide.full-width .katex-display > .katex {
+text-align: left;
+}
+.wide.extra-wide figcaption,
+.wide.extra-wide table > caption,
+.wide.full-width figcaption,
+.wide.full-width table > caption {
+text-align: left;
+margin-left: var(--line-height);
+max-width: var(--main-width);
+}
+}
+
+
+
+@media screen and (min-width: calc(26px + 550px + 26px + 169px + 26px)) and (max-width: calc(52px + 745px + 52px + 206px + 52px - 1px)) {
+header,
+nav#TOC,
+main,
+footer {
+margin-left: var(--line-height);
+max-width: calc(max(var(--main-width-narrow), 100vw - (3 * var(--line-height)) - var(--side-note-max-width)));
+margin-right: auto;
+}
+.sidenote,
+.marginnote {
+--margin-left: var(--line-height);
+--margin-right: var(--line-height);
+--computed-width: calc(100vw - var(--main-width-narrow) - var(--line-height) - var(--margin-right) - var(--margin-left));
+}
+.wide {
+width: var(--main-width);
+overflow-x: auto;
+overflow-y: hidden;
+}
+.wide .katex-display,
+.wide .katex-display > .katex {
+text-align: left;
+}
+.wide figcaption,
+.wide table > caption {
+text-align: left;
+max-width: var(--main-width-narrow);
+}
+.wide.extra-wide,
+.wide.full-width {
+width: calc(100vw - 2 * var(--line-height));
+}
+}
+
+
+
+@media screen and (max-width: calc(26px + 550px + 26px + 169px + 26px - 1px)) {
+header,
+nav#TOC,
+main,
+footer {
+margin-left: var(--line-height);
+margin-right: var(--line-height);
+}
+.sidenote,
+.marginnote {
+display: none;
+}
+.margin-toggle:checked + .sidenote,
+.margin-toggle:checked + .marginnote {
+display: block;
+float: left;
+clear: both;
+width: 100%;
+max-width: 100%;
+}
+.wide {
+width: 100%;
+overflow-x: auto;
+overflow-y: hidden;
+}
+.wide .katex-display,
+.wide .katex-display > .katex {
+text-align: left;
+}
+.wide figcaption,
+.wide table > caption {
+text-align: left;
+max-width: calc(100vw - 2 * var(--line-height));
+}
+}
+
+
+@page {
+size: letter;
+margin: 0.5in;
+
+margin-left: 0.25in;
+}
+@media print {
+:root {
+--line-height: 18px;
+--font-size: 12px;
+--inline-code-font-size: 11px;
+--code-block-font-size: 10px;
+--code-block-side-padding: 6px;
+--line-numbers-font-size: 8.5px;
+--tight-code-line-height: 12.5px;
+--tight-code-padding-top: 2px;
+--side-note-line-height: 14px;
+--side-note-font-size: 9px;
+--side-note-code-font-size: 9px;
+--side-note-baseline-offset: 3px;
+--side-note-sup-offset: -4px;
+--side-note-number-hang-left: -4px;
+--side-note-text-indent: -6.5px;
+--title-font-size: 30px;
+--title-code-font-size: 29px;
+--title-line-height: 37px;
+--title-margin-top: 71px;
+--h1-font-size: 22px;
+--h1-code-font-size: 20px;
+--h1-line-height: 28px;
+--h1-word-spacing: 0.5px;
+--h1-margin-top: 18px;
+--h1-margin-bottom: 6px;
+--h2-font-size: 16.5px;
+--h2-code-font-size: 15px;
+--h2-line-height: 22px;
+--h2-word-spacing: 0px;
+--h2-margin-top: 14px;
+--h2-margin-bottom: 4.5px;
+--ul-indent-size: 18px;
+--ol-indent-size: 14px;
+--hr-margin-top: 14px;
+--figcaption-line-height: 16px;
+--figcaption-font-size: 10px;
+--figcaption-code-font-size: 9.5px;
+--figcaption-gap: 4.5px;
+--captioned-figure-gap: 7.5px;
+--table-line-height: 16px;
+--table-font-size: 10px;
+--table-code-font-size: 9.5px;
+--nav-toc-font-size: 8.5px;
+--nav-toc-code-font-size: 8.5px;
+}
+body {
+padding-top: 0;
+
+padding-left: 0.25in;
+}
+header,
+nav#TOC,
+main,
+footer {
+width: 5.25in;
+margin-right: auto;
+}
+.sidenote,
+.marginnote {
+width: 2in;
+margin-right: -2.25in;
+}
+.wide {
+width: 7.5in;
+overflow-x: hidden;
+overflow-y: hidden;
+}
+.wide .katex-display,
+.wide .katex-display > .katex {
+text-align: left;
+}
+.wide figcaption,
+.wide table > caption {
+text-align: left;
+width: 5.25in;
+}
+.wide pre > code {
+white-space: pre-wrap;
+}
+}
+h1, h2, h3 {
+page-break-after: avoid;
+}
+table, figure, pre, img {
+page-break-inside: avoid;
+}
+
+
+
+</style>
+  <style type="text/css">:root {
+--solarized-base03: #002b36;
+--solarized-base02: #073642;
+--solarized-base01: #586e75;
+--solarized-base00: #657b83;
+--solarized-base0: #839496;
+--solarized-base1: #93a1a1;
+--solarized-base2: #eee8d5;
+--solarized-base3: #fdf6e3;
+--solarized-yellow: #b58900;
+--solarized-orange: #cb4b16;
+--solarized-red: #dc322f;
+--solarized-magenta: #d33682;
+--solarized-violet: #6c71c4;
+--solarized-blue: #268bd2;
+--solarized-cyan: #2aa198;
+--solarized-green: #859900;
+}
+@media (prefers-color-scheme: dark) {
+:root {
+--solarized-base03: #fdf6e3;
+--solarized-base02: #eee8d5;
+--solarized-base01: #93a1a1;
+--solarized-base00: #839496;
+--solarized-base0: #657b83;
+--solarized-base1: #586e75;
+--solarized-base2: #073642;
+--solarized-base3: #002b36;
+}
+}
+pre, pre.numberSource {
+background: var(--solarized-base3);
+
+--color-code-highlight-bg: var(--solarized-base2);
+}
+pre code { color: var(--solarized-base00); }
+pre.numberSource > code.sourceCode > span > a:first-child::before {
+color: var(--solarized-base1);
+}
+code span.kw { color: var(--solarized-green); font-weight: normal; font-style: normal; } 
+code span.dt { color: var(--solarized-yellow); font-weight: normal; font-style: normal; } 
+code span.dv { color: var(--solarized-cyan); font-weight: normal; font-style: normal; } 
+code span.bn { color: var(--solarized-cyan); font-weight: normal; font-style: normal; } 
+code span.fl { color: var(--solarized-cyan); font-weight: normal; font-style: normal; } 
+code span.ch { color: var(--solarized-cyan); font-weight: normal; font-style: normal; } 
+code span.st { color: var(--solarized-cyan); font-weight: normal; font-style: normal; } 
+code span.co { color: var(--solarized-base1); font-weight: normal; font-style: italic; } 
+code span.ot { color: var(--solarized-blue); font-weight: normal; font-style: normal; } 
+code span.al { color: var(--solarized-red); font-weight: normal; font-style: normal; } 
+code span.fu { color: var(--solarized-blue); font-weight: normal; font-style: normal; } 
+code span.er { color: var(--solarized-red); font-weight: normal; font-style: normal; } 
+code span.wa { color: var(--solarized-orange); font-weight: normal; font-style: italic; } 
+code span.cn { color: var(--solarized-cyan); font-weight: normal; font-style: normal; } 
+code span.sc { color: var(--solarized-red); font-weight: normal; font-style: normal; } 
+code span.vs { color: var(--solarized-cyan); font-weight: normal; font-style: normal; } 
+code span.ss { color: var(--solarized-red); font-weight: normal; font-style: normal; } 
+code span.im { color: var(--solarized-base00); font-weight: normal; font-style: normal; } 
+code span.va { color: var(--solarized-blue); font-weight: normal; font-style: normal; } 
+code span.cf { color: var(--solarized-green); font-weight: normal; font-style: normal; } 
+code span.op { color: var(--solarized-green); font-weight: normal; font-style: normal; } 
+code span.bu { color: var(--solarized-base00); font-weight: normal; font-style: normal; } 
+code span.ex { color: var(--solarized-base00); font-weight: normal; font-style: normal; } 
+code span.pp { color: var(--solarized-orange); font-weight: normal; font-style: normal; } 
+code span.at { color: var(--solarized-base00); font-weight: normal; font-style: normal; } 
+code span.do { color: var(--solarized-base1); font-weight: normal; font-style: italic; } 
+code span.an { color: var(--solarized-base1); font-weight: normal; font-style: italic; } 
+code span.cv { color: var(--solarized-base1); font-weight: normal; font-style: italic; } 
+code span.in { color: var(--solarized-base1); font-weight: normal; font-style: italic; } 
+a.sourceLine::before { text-decoration: none; }
+
+code.diff span.kw { color: var(--solarized-yellow); font-weight: normal; font-style: normal; } 
+code.diff span.dt { color: var(--solarized-blue); font-weight: normal; font-style: normal; } 
+code.diff span.st { color: var(--solarized-red); font-weight: normal; font-style: normal; } 
+code.diff span.va { color: var(--solarized-green); font-weight: normal; font-style: normal; } 
+</style>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.15.1/dist/katex.min.js"></script>
   <script>document.addEventListener("DOMContentLoaded", function () {
  var mathElements = document.getElementsByClassName("math");
  var macros = [];
@@ -260,14 +1418,14 @@ Next line</li>
 </ol>
 <p>This is some body text between lists. This project provides CSS files and a template for using Pandoc to generate standalone HTML files. It supports most features Pandoc Markdown has to offer, and some extras.</p>
 <ul class="task-list">
-<li><label><input type="checkbox" />Line starts with a short bullet point</label>
+<li><label><input type="checkbox"></input>Line starts with a short bullet point</label>
 <ul class="task-list">
-<li><label><input type="checkbox" />First line<br />
+<li><label><input type="checkbox"></input>First line<br />
 Next line</label></li>
 </ul></li>
-<li><label><input type="checkbox" checked="" />Line starts with a short bullet point</label>
+<li><label><input type="checkbox" checked></input>Line starts with a short bullet point</label>
 <ul class="task-list">
-<li><label><input type="checkbox" checked="" />First line, <strong>checklists are different by browser, even on same OS</strong><br />
+<li><label><input type="checkbox" checked></input>First line, <strong>checklists are different by browser, even on same OS</strong><br />
 Next line</label></li>
 </ul></li>
 </ul>
@@ -277,9 +1435,9 @@ Next line</label></li>
 </ul>
 <!-- force break -->
 <ul class="task-list">
-<li><label><input type="checkbox" />First is unchecked<br />
+<li><label><input type="checkbox"></input>First is unchecked<br />
 Next line</label></li>
-<li><label><input type="checkbox" checked="" />Last is checked<br />
+<li><label><input type="checkbox" checked></input>Last is checked<br />
 </label></li>
 </ul>
 <!-- force break -->
@@ -322,10 +1480,10 @@ Next line</label></li>
 <div class="sourceCode" id="cb1"><pre class="sourceCode numberSource ruby numberLines hl-7 hl-8 hl-9 hl-10"><code class="sourceCode ruby"><span id="cb1-1"><a href="#cb1-1"></a><span class="co"># typed: true</span></span>
 <span id="cb1-2"><a href="#cb1-2"></a><span class="fu">require</span> <span class="vs">&#39;sorbet-runtime&#39;</span></span>
 <span id="cb1-3"><a href="#cb1-3"></a></span>
-<span id="cb1-4"><a href="#cb1-4"></a><span class="cf">class</span> <span class="cn">A</span></span>
-<span id="cb1-5"><a href="#cb1-5"></a>  <span class="fu">extend</span> <span class="cn">T</span><span class="op">::</span><span class="dt">Sig</span></span>
+<span id="cb1-4"><a href="#cb1-4"></a><span class="cf">class</span> A</span>
+<span id="cb1-5"><a href="#cb1-5"></a>  <span class="fu">extend</span> T<span class="kw">::</span><span class="dt">Sig</span></span>
 <span id="cb1-6"><a href="#cb1-6"></a></span>
-<span id="cb1-7"><a href="#cb1-7"></a>  sig <span class="op">{</span>void<span class="op">}</span></span>
+<span id="cb1-7"><a href="#cb1-7"></a>  sig <span class="kw">{</span>void<span class="kw">}</span></span>
 <span id="cb1-8"><a href="#cb1-8"></a>  <span class="cf">def</span> <span class="dv">self</span><span class="at">.main</span></span>
 <span id="cb1-9"><a href="#cb1-9"></a>    <span class="fu">puts</span> <span class="st">&quot;Hello, world!&quot;</span></span>
 <span id="cb1-10"><a href="#cb1-10"></a>  <span class="cf">end</span></span>
@@ -437,7 +1595,7 @@ Followed by normal text again</p>
 <div class="note red">
 <table>
 <tbody>
-<tr>
+<tr class="odd">
 <td>🛑 Look before you leap!</td>
 </tr>
 </tbody>
@@ -446,7 +1604,7 @@ Followed by normal text again</p>
 <div class="note yellow">
 <table>
 <tbody>
-<tr>
+<tr class="odd">
 <td>⚠️ This is a warning!</td>
 </tr>
 </tbody>
@@ -459,7 +1617,7 @@ Followed by normal text again</p>
 <col style="width: 100%" />
 </colgroup>
 <tbody>
-<tr>
+<tr class="odd">
 <td>✅ Success! The deed is now done.<br><br>Feel free to retry whatever it is you were trying to do.</td>
 </tr>
 </tbody>
@@ -468,7 +1626,7 @@ Followed by normal text again</p>
 <div class="note blue">
 <table>
 <tbody>
-<tr>
+<tr class="odd">
 <td>ℹ️ Consecutive notes are like consecutive tables.</td>
 </tr>
 </tbody>
@@ -477,7 +1635,7 @@ Followed by normal text again</p>
 <div class="note purple">
 <table>
 <tbody>
-<tr>
+<tr class="odd">
 <td>🔮 Can you see into the future?</td>
 </tr>
 </tbody>
@@ -485,25 +1643,15 @@ Followed by normal text again</p>
 </div>
 <p>Might make sense to do these in terms of like divs but for now they’re tables.</p>
 <h1 id="side-notes">Side notes</h1>
-<p>Markdown footnotes become side notes.<span class="sidenote-wrapper"><label for="sn-0" class="margin-toggle sidenote-number"></label><input type="checkbox" id="sn-0" class="margin-toggle"/><span class="sidenote">Is the beginning aligned?<br />
-Is the beginning aligned?<br />
+<p>Markdown footnotes become side notes.<span class="sidenote-wrapper"><label for="sn-1" class="margin-toggle sidenote-number"></label><input type="checkbox" id="sn-1" class="margin-toggle"></input><span class="sidenote">Is the beginning aligned?<br />
+Is the beginning aligned?</span></span> Versus sup.<strong><sup>1</sup></strong> It would be neat to associate a range of text with a footnote, rather than a single point. The <strong>second side note baseline</strong> will not line up. If we wrap this third line all the way around, we can see how it behaves for longer lines as well. First: 1<sup>st</sup></p>
+<p>Markdown footnotes become side notes.<span class="sidenote-wrapper"><label for="mn-2" class="margin-toggle">⊕</label><input type="checkbox" id="mn-2" class="margin-toggle"></input><span class="marginnote">This is a margin note without a number. It spans just a few lines. Maybe it gets to three?</span></span> After the note. It would be neat to associate a range of text with a footnote, rather than a single point. This is longer text to give the paragraph some heft to it, so that the side note doesn’t feel overpowering.</p>
+<p>Markdown footnotes become side notes.<span class="sidenote-wrapper"><label for="sn-3" class="margin-toggle sidenote-number"></label><input type="checkbox" id="sn-3" class="margin-toggle"></input><span class="sidenote">There’s <code>code</code> in this side note!</span></span> After the note. It would be neat to associate a range of text with a footnote, rather than a single point. The <strong>second side note baseline</strong> will not line up. If we wrap this third line all the way around, we can see how it behaves for longer lines as well.</p>
+<p>Markdown footnotes become side notes.<span class="sidenote-wrapper"><label for="mn-4" class="margin-toggle">⊕</label><input type="checkbox" id="mn-4" class="margin-toggle"></input><span class="marginnote">In this margin note, we’ve got quite a bit of text. It spans multiple so many lines that even in the Pandoc markdown source it spans multiple lines.<br />
 <br />
-</span></span> Versus sup.<strong><sup>1</sup></strong> It would be neat to associate a range of text with a footnote, rather than a single point. The <strong>second side note baseline</strong> will not line up. If we wrap this third line all the way around, we can see how it behaves for longer lines as well. First: 1<sup>st</sup></p>
-<p>Markdown footnotes become side notes.<span class="sidenote-wrapper"><label for="sn-1" class="margin-toggle">&#8853;</label><input type="checkbox" id="sn-1" class="margin-toggle"/><span class="marginnote">This is a margin note without a number. It spans just a few lines. Maybe it gets to three?<br />
-<br />
-</span></span> After the note. It would be neat to associate a range of text with a footnote, rather than a single point. This is longer text to give the paragraph some heft to it, so that the side note doesn’t feel overpowering.</p>
-<p>Markdown footnotes become side notes.<span class="sidenote-wrapper"><label for="sn-2" class="margin-toggle sidenote-number"></label><input type="checkbox" id="sn-2" class="margin-toggle"/><span class="sidenote">There’s <code>code</code> in this side note!<br />
-<br />
-</span></span> After the note. It would be neat to associate a range of text with a footnote, rather than a single point. The <strong>second side note baseline</strong> will not line up. If we wrap this third line all the way around, we can see how it behaves for longer lines as well.</p>
-<p>Markdown footnotes become side notes.<span class="sidenote-wrapper"><label for="sn-3" class="margin-toggle">&#8853;</label><input type="checkbox" id="sn-3" class="margin-toggle"/><span class="marginnote">In this margin note, we’ve got quite a bit of text. It spans multiple so many lines that even in the Pandoc markdown source it spans multiple lines.<br />
-<br />
-It can have line breaks too. This should be a test of what happens when the margin note is more lines than the paragraph it’s commenting on.<br />
-<br />
-</span></span> After the note. This paragraph is not short, but the margin note next to us is much longer, which pushes the subsequent notes further away from their anchor. But also, footnotes.<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a></p>
+It can have line breaks too. This should be a test of what happens when the margin note is more lines than the paragraph it’s commenting on.</span></span> After the note. This paragraph is not short, but the margin note next to us is much longer, which pushes the subsequent notes further away from their anchor. But also, footnotes.<span class="sidenote-wrapper"><label for="sn-5" class="margin-toggle sidenote-number"></label><input type="checkbox" id="sn-5" class="margin-toggle"></input><span class="sidenote">{.} Use a prefix of <code>{.}</code> to leave it as a footnote. Unfortunately, side notes and margin notes don’t share the same namespace. If you want to mix side notes and footnotes in the same document, you might want to use margin notes, so that there is only one kind of numbered note.</span></span></p>
 <blockquote>
-<p>Without doing anything else,<span class="sidenote-wrapper"><label for="sn-4" class="margin-toggle sidenote-number"></label><input type="checkbox" id="sn-4" class="margin-toggle"/><span class="sidenote">This side note attaches to a <code>blockquote</code>. Why would that be any different? Not sure. We reset the <code>font-style</code> and that’s it.<br />
-<br />
-</span></span> side notes that attach to text inside a block quote would magically become italic, because they’d inherit the styles of the surrounding block quote. Luckily, we have a test for this case, and that does not to happen because we fixed it.</p>
+<p>Without doing anything else,<span class="sidenote-wrapper"><label for="sn-6" class="margin-toggle sidenote-number"></label><input type="checkbox" id="sn-6" class="margin-toggle"></input><span class="sidenote">This side note attaches to a <code>blockquote</code>. Why would that be any different? Not sure. We reset the <code>font-style</code> and that’s it.</span></span> side notes that attach to text inside a block quote would magically become italic, because they’d inherit the styles of the surrounding block quote. Luckily, we have a test for this case, and that does not to happen because we fixed it.</p>
 </blockquote>
 <h1 id="images">Images</h1>
 <p>We can also handle images:</p>
@@ -537,17 +1685,17 @@ It can have line breaks too. This should be a test of what happens when the marg
 <h1 id="tables">Tables</h1>
 <table>
 <thead>
-<tr>
+<tr class="header">
 <th><strong>Column 1</strong></th>
 <th><strong>Column 2</strong></th>
 </tr>
 </thead>
 <tbody>
-<tr>
+<tr class="odd">
 <td>This is <code>some</code> text.</td>
 <td>This is some text.</td>
 </tr>
-<tr>
+<tr class="even">
 <td>This is some text.</td>
 <td>This is some text.</td>
 </tr>
@@ -555,17 +1703,17 @@ It can have line breaks too. This should be a test of what happens when the marg
 </table>
 <table>
 <thead>
-<tr>
+<tr class="header">
 <th><strong>Column 1</strong></th>
 <th><strong>Column 2</strong></th>
 </tr>
 </thead>
 <tbody>
-<tr>
+<tr class="odd">
 <td>This is some text.</td>
 <td>This is some text.</td>
 </tr>
-<tr>
+<tr class="even">
 <td>This is some text.</td>
 <td>This is some text.</td>
 </tr>
@@ -578,17 +1726,17 @@ It can have line breaks too. This should be a test of what happens when the marg
 <col style="width: 27%" />
 </colgroup>
 <thead>
-<tr>
+<tr class="header">
 <th style="text-align: left;">Column 1</th>
 <th style="text-align: left;">Column 2</th>
 </tr>
 </thead>
 <tbody>
-<tr>
+<tr class="odd">
 <td style="text-align: left;">This is some text.</td>
 <td style="text-align: left;">This is some text.</td>
 </tr>
-<tr>
+<tr class="even">
 <td style="text-align: left;">This is some text.</td>
 <td style="text-align: left;">This is some text.</td>
 </tr>
@@ -597,17 +1745,17 @@ It can have line breaks too. This should be a test of what happens when the marg
 <table>
 <caption>This table has a caption.</caption>
 <thead>
-<tr>
+<tr class="header">
 <th><strong>Column 1</strong></th>
 <th><strong>Column 2</strong></th>
 </tr>
 </thead>
 <tbody>
-<tr>
+<tr class="odd">
 <td>This is some text.</td>
 <td>This is some text.</td>
 </tr>
-<tr>
+<tr class="even">
 <td>This is some text.</td>
 <td>This is some text.</td>
 </tr>
@@ -627,7 +1775,7 @@ Meanwhile, <code>wide</code> will expand past the right column when the center c
 <col style="width: 20%" />
 </colgroup>
 <thead>
-<tr>
+<tr class="header">
 <th><strong>Column 1</strong></th>
 <th><strong>Column 2</strong></th>
 <th><strong>Column 3</strong></th>
@@ -636,14 +1784,14 @@ Meanwhile, <code>wide</code> will expand past the right column when the center c
 </tr>
 </thead>
 <tbody>
-<tr>
+<tr class="odd">
 <td>This is some text. This is some text.</td>
 <td>This is some text. This is some text.</td>
 <td>This is some text. This is some text.</td>
 <td>This is some text. This is some text.</td>
 <td>This is some text. This is some text.</td>
 </tr>
-<tr>
+<tr class="even">
 <td>This is some text. This is some text.</td>
 <td>This is some text. This is some text.</td>
 <td>This is some text. This is some text.</td>
@@ -669,7 +1817,7 @@ Meanwhile, <code>wide</code> will expand past the right column when the center c
 <col style="width: 10%" />
 </colgroup>
 <thead>
-<tr>
+<tr class="header">
 <th><strong>Column 1</strong></th>
 <th><strong>Column 2</strong></th>
 <th><strong>Column 3</strong></th>
@@ -683,7 +1831,7 @@ Meanwhile, <code>wide</code> will expand past the right column when the center c
 </tr>
 </thead>
 <tbody>
-<tr>
+<tr class="odd">
 <td>This is some text.</td>
 <td>This is some text.</td>
 <td>This is some text.</td>
@@ -695,7 +1843,7 @@ Meanwhile, <code>wide</code> will expand past the right column when the center c
 <td>This is some text.</td>
 <td>This is some text.</td>
 </tr>
-<tr>
+<tr class="even">
 <td>This is some text.</td>
 <td>This is some text.</td>
 <td>This is some text.</td>
@@ -736,7 +1884,7 @@ Meanwhile, <code>wide</code> will expand past the right column when the center c
 <col style="width: 4%" />
 </colgroup>
 <thead>
-<tr>
+<tr class="header">
 <th><strong>Column 1</strong></th>
 <th><strong>Column 2</strong></th>
 <th><strong>Column 3</strong></th>
@@ -760,7 +1908,7 @@ Meanwhile, <code>wide</code> will expand past the right column when the center c
 </tr>
 </thead>
 <tbody>
-<tr>
+<tr class="odd">
 <td>This is some text.</td>
 <td>This is some text.</td>
 <td>This is some text.</td>
@@ -782,7 +1930,7 @@ Meanwhile, <code>wide</code> will expand past the right column when the center c
 <td>This is some text.</td>
 <td>This is some text.</td>
 </tr>
-<tr>
+<tr class="even">
 <td>This is some text.</td>
 <td>This is some text.</td>
 <td>This is some text.</td>
@@ -833,7 +1981,7 @@ Meanwhile, <code>wide</code> will expand past the right column when the center c
 <col style="width: 4%" />
 </colgroup>
 <thead>
-<tr>
+<tr class="header">
 <th><strong>Column 1</strong></th>
 <th><strong>Column 2</strong></th>
 <th><strong>Column 3</strong></th>
@@ -857,7 +2005,7 @@ Meanwhile, <code>wide</code> will expand past the right column when the center c
 </tr>
 </thead>
 <tbody>
-<tr>
+<tr class="odd">
 <td>This is some text.</td>
 <td>This is some text.</td>
 <td>This is some text.</td>
@@ -879,7 +2027,7 @@ Meanwhile, <code>wide</code> will expand past the right column when the center c
 <td>This is some text.</td>
 <td>This is some text.</td>
 </tr>
-<tr>
+<tr class="even">
 <td>This is some text.</td>
 <td>This is some text.</td>
 <td>This is some text.</td>
@@ -913,17 +2061,17 @@ Meanwhile, <code>wide</code> will expand past the right column when the center c
 <col style="width: 25%" />
 </colgroup>
 <thead>
-<tr>
+<tr class="header">
 <th style="text-align: left;">Column 1</th>
 <th style="text-align: left;">Column 2</th>
 </tr>
 </thead>
 <tbody>
-<tr>
+<tr class="odd">
 <td style="text-align: left;">This is a really wide column using pandoc’s fancy tables.</td>
 <td style="text-align: left;">This is narrow.</td>
 </tr>
-<tr>
+<tr class="even">
 <td style="text-align: left;">This is a really wide column using pandoc’s fancy tables.</td>
 <td style="text-align: left;">This is narrow.</td>
 </tr>
@@ -932,7 +2080,7 @@ Meanwhile, <code>wide</code> will expand past the right column when the center c
 </div>
 <table>
 <tbody>
-<tr>
+<tr class="odd">
 <td>No header</td>
 <td>Still works</td>
 </tr>
@@ -944,13 +2092,13 @@ Meanwhile, <code>wide</code> will expand past the right column when the center c
 <col style="width: 50%" />
 </colgroup>
 <thead>
-<tr>
+<tr class="header">
 <th>Column 1</th>
 <th>Column 2</th>
 </tr>
 </thead>
 <tbody>
-<tr>
+<tr class="odd">
 <td><p>This is some text</p>
 <p>It spans multiple lines in one grid.</p>
 <div class="sourceCode" id="cb14"><pre class="sourceCode ruby"><code class="sourceCode ruby"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">puts</span>(<span class="st">&quot;Hello, world!)</span></span></code></pre></div>
@@ -961,7 +2109,7 @@ Meanwhile, <code>wide</code> will expand past the right column when the center c
 <li>Another list item in the list</li>
 </ul></td>
 </tr>
-<tr>
+<tr class="even">
 <td><p>This is some text</p>
 <p>It spans multiple lines in one grid.</p>
 <div class="sourceCode" id="cb15"><pre class="sourceCode ruby"><code class="sourceCode ruby"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">puts</span>(<span class="st">&quot;Hello, world!)</span></span></code></pre></div></td>
@@ -981,13 +2129,13 @@ Meanwhile, <code>wide</code> will expand past the right column when the center c
 <col style="width: 50%" />
 </colgroup>
 <thead>
-<tr>
+<tr class="header">
 <th>Column 1</th>
 <th>Column 2</th>
 </tr>
 </thead>
 <tbody>
-<tr>
+<tr class="odd">
 <td><p>This is some text</p>
 <p>It spans multiple lines in one grid.</p>
 <div class="sourceCode" id="cb16"><pre class="sourceCode ruby"><code class="sourceCode ruby"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">puts</span>(<span class="st">&quot;Hello, world!)</span></span></code></pre></div>
@@ -998,7 +2146,7 @@ Meanwhile, <code>wide</code> will expand past the right column when the center c
 <li>Another list item in the list</li>
 </ul></td>
 </tr>
-<tr>
+<tr class="even">
 <td><p>This is some text</p>
 <p>It spans multiple lines in one grid.</p>
 <div class="sourceCode" id="cb17"><pre class="sourceCode ruby"><code class="sourceCode ruby"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="fu">puts</span>(<span class="st">&quot;Hello, world!)</span></span></code></pre></div></td>
@@ -1011,12 +2159,6 @@ Meanwhile, <code>wide</code> will expand past the right column when the center c
 </tbody>
 </table>
 </div>
-<section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes">
-<hr />
-<ol>
-<li id="fn1"><p>Use a prefix of <code>{.}</code> to leave it as a footnote. Unfortunately, side notes and margin notes don’t share the same namespace. If you want to mix side notes and footnotes in the same document, you might want to use margin notes, so that there is only one kind of numbered note.<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
-</ol>
-</section>
 </main>
 
 <footer>

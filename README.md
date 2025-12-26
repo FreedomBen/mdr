@@ -1,69 +1,46 @@
-# pandoc-markdown-css-theme
+# mdr
 
-<https://jez.io/pandoc-markdown-css-theme/>
+`mdr` is a small Rust wrapper around `pandoc` that ships an embedded HTML
+template, CSS theme, and sidenote Lua filter. It lets you turn any Markdown file
+into a standalone HTML page with one command:
+
+```bash
+mdr input.md [output.html]
+```
+
+If you omit `output.html`, `mdr` swaps the extension of the input path. Override
+the KaTeX CDN base with `MDR_KATEX=https://…/`.
 
 ## Developing
 
-```
-make
-make watch
-```
+- `make` / `make build` – build debug binary at `target/debug/mdr`
+- `make dist` – build a release binary into `dist/mdr` (set `TARGET` to cross‑compile)
+- `make fmt` / `make lint` – format and run clippy (`-D warnings`)
+- `make test` – run unit + integration tests
+- `make watch-cli` – `cargo watch -x check -x test` (requires `cargo-watch`)
 
-More instructions in the [Usage][Usage] section of the website above.
+## Site/docs
 
-## Native helper binary
+The demo site lives in `site/`:
 
-You can optionally build a static helper that wraps your local `pandoc` with this
-repo’s template, CSS, and sidenote filter baked in.  This allows you to trivially
-convert markdown files to html anywhere on your system with a single command, such as:
+- Markdown sources: `site/src/`
+- Static assets: `site/public/`
+- Generated output: `docs/`
 
-```bash
-pandoc-pretty README.md
-```
+Build once with `make site`. Serve and auto‑rebuild with `make watch`
+(`watchman-make` required). The site build dogfoods the `mdr` binary.
 
-Which will spit out a README.html file you can open in your browser or deploy to the web.
+## Assets
 
-You can optionally specify output location and name:
+- `assets/template.html5`
+- `assets/css/theme.css`
+- `assets/css/skylighting-solarized-theme.css`
+- `assets/pandoc-sidenote.lua`
 
-```bash
-pandoc-pretty README.md ~/README-weird-name.html
-```
-
-### Building the native wrapper
-
-This binary is a small rust-based wrapper that requires `pandoc` to be installed and
-available in your `PATH` variable.  Install and init `rustup`, then:
-
-```bash
-rustup target add x86_64-unknown-linux-musl   # once
-make pandoc-pretty                            # produces dist/pandoc-pretty
-```
-
-You may wish to copy the binary somewhere on you system in `PATH`.  For example:
-
-```bash
-# If you have ~/bin/
-cp ./dist/pandoc-pretty ~/bin/
-
-# Alternatively
-sudo cp ./dist/pandoc-pretty /usr/local/bin/
-```
-
-Usage: `pandoc-pretty input.md [output.html]` (requires `pandoc` in `PATH`). The
-output defaults to the input filename with `.html` extension. The
-output HTML is self-contained: template, CSS, and sidenote Lua filter are
-embedded so the file works standalone.
-
-[Usage]: https://jez.io/pandoc-markdown-css-theme/#usage
+These are embedded into the binary; edits trigger rebuilds automatically.
 
 ## License
 
-HTML, CSS, and and JavaScript code is licensed under the Blue Oak Model License.
-See LICENSE.md
-
-Text and images are licensed under CC-BY-SA 4.0. See:
-<https://creativecommons.org/licenses/by-sa/4.0/>
-
-This project **does not** provide a license for any fonts distributed in this
-project. You **must** acquire your own license for proprietary fonts distributed
-with this project.
+HTML, CSS, and JavaScript code is licensed under the Blue Oak Model License. See
+`LICENSE.md`. Text and images are licensed under CC-BY-SA 4.0. Fonts are **not**
+licensed by this project; obtain your own licenses where required.

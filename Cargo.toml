@@ -1,9 +1,9 @@
 [package]
-name = "pandoc-pretty"
+name = "mdr"
 version = "0.1.0"
 edition = "2021"
 license = "BlueOak-1.0.0"
-description = "Wrapper that runs pandoc with bundled template, CSS, and sidenote filter."
+description = "Pandoc wrapper that ships with an embedded template, CSS, and sidenote filter."
 
 [profile.release]
 lto = true

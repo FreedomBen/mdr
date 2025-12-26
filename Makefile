@@ -1,61 +1,86 @@
 #
-# Author: Jake Zimmerman <jake@zimmerman.io>
+# mdr: Rust-first CLI with optional static site helpers.
 #
-# ===== Usage ================================================================
+# Quick start:
+#   make            # build debug binary (target/debug/mdr)
+#   make test       # run unit/integration tests
+#   make dist       # build release binary into dist/mdr
+#   make site       # rebuild docs/ from site/src markdown
+#   make watch      # serve docs/ and rebuild on changes
 #
-# make                  Prepare docs/ folder (all markdown & assets)
-# make docs/index.html  Recompile just docs/index.html
-#
-# make watch            Start a local HTTP server and rebuild on changes
-# PORT=4242 make watch  Like above, but use port 4242
-#
-# make clean            Delete all generated files
-#
-# ============================================================================
-
-SOURCES := $(shell find src -type f -name '*.md')
-TARGETS := $(patsubst src/%.md,docs/%.html,$(SOURCES))
 
 CARGO ?= cargo
-TARGET ?= x86_64-unknown-linux-musl
 CARGO_TARGET_DIR ?= $(CURDIR)/target
+BIN := mdr
+TARGET ?=
+
+BIN_DEBUG := $(CARGO_TARGET_DIR)/debug/$(BIN)
+
+ifeq ($(TARGET),)
+TARGET_FLAG :=
+BIN_RELEASE := $(CARGO_TARGET_DIR)/release/$(BIN)
+else
+TARGET_FLAG := --target $(TARGET)
+BIN_RELEASE := $(CARGO_TARGET_DIR)/$(TARGET)/release/$(BIN)
+endif
+
+SITE_MD := $(shell find site/src -type f -name '*.md')
+SITE_HTML := $(patsubst site/src/%.md,docs/%.html,$(SITE_MD))
+PUBLIC_FILES := $(shell find site/public -type f)
 
 .PHONY: all
-all: docs/.nojekyll $(TARGETS)
+all: build
 
-.PHONY: clean
-clean:
+.PHONY: build
+build: $(BIN_DEBUG)
+
+$(BIN_DEBUG): Cargo.toml src/main.rs assets/template.html5 assets/css/theme.css assets/css/skylighting-solarized-theme.css assets/pandoc-sidenote.lua
+	$(CARGO) build
+
+.PHONY: dist
+dist: dist/$(BIN)
+
+dist/$(BIN): Cargo.toml src/main.rs assets/template.html5 assets/css/theme.css assets/css/skylighting-solarized-theme.css assets/pandoc-sidenote.lua
+	CARGO_TARGET_DIR=$(CARGO_TARGET_DIR) $(CARGO) build --release $(TARGET_FLAG)
+	mkdir -p dist
+	cp $(BIN_RELEASE) dist/$(BIN)
+
+.PHONY: fmt
+fmt:
+	$(CARGO) fmt
+
+.PHONY: lint
+lint:
+	$(CARGO) clippy -- -D warnings
+
+.PHONY: test
+test:
+	$(CARGO) test
+
+.PHONY: watch-cli
+watch-cli:
+	cargo watch -x check -x test
+
+.PHONY: site
+site: docs/.nojekyll $(SITE_HTML)
+
+.PHONY: docs/.nojekyll
+docs:
+	mkdir -p docs
+
+docs/.nojekyll: $(PUBLIC_FILES) | docs
 	rm -rf docs
+	mkdir -p docs
+	cp -vr site/public/. docs
+
+docs/%.html: site/src/%.md $(BIN_DEBUG) | docs
+	mkdir -p $(dir $@)
+	$(BIN_DEBUG) "$<" "$@"
 
 .PHONY: watch
 watch:
-	./tools/serve.sh --watch
+	./tools/serve.sh
 
-docs/.nojekyll: $(wildcard public/*) public/.nojekyll
-	rm -vrf docs && mkdir -p docs && cp -vr public/.nojekyll public/* docs
-
-.PHONY: docs
-docs: docs/.nojekyll
-
-# Generalized rule: how to build a .html file from each .md
-# Note: you will need pandoc 2 or greater for this to work
-docs/%.html: src/%.md template.html5 Makefile tools/build.sh
-	tools/build.sh "$<" "$@"
-
-### Makefile commands for rust wrapper
-
-# Build rust wrapper
-.PHONY: pandoc-pretty
-pandoc-pretty: dist/pandoc-pretty
-
-dist/pandoc-pretty: pandoc-pretty/src/main.rs pandoc-pretty/Cargo.toml template.html5 docs/css/theme.css docs/css/skylighting-solarized-theme.css pandoc-sidenote.lua
-	CARGO_TARGET_DIR=$(CARGO_TARGET_DIR) $(CARGO) build --release --target $(TARGET) --manifest-path pandoc-pretty/Cargo.toml
-	mkdir -p dist
-	cp $(CARGO_TARGET_DIR)/$(TARGET)/release/pandoc-pretty dist/pandoc-pretty
-
-# run tests for rust wrapper
-.PHONY: test-pandoc-pretty
-test-pandoc-pretty:
-	CARGO_TARGET_DIR=$(CARGO_TARGET_DIR) $(CARGO) test --manifest-path pandoc-pretty/Cargo.toml --tests
-
-### End Makefile commands for rust wrapper
+.PHONY: clean
+clean:
+	rm -rf docs dist

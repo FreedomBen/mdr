@@ -4,10 +4,10 @@ use std::io::{self, Write};
 use std::path::{Path, PathBuf};
 use std::process::{self, Command};
 
-const TEMPLATE_HTML: &str = include_str!("../../template.html5");
-const THEME_CSS: &str = include_str!("../../docs/css/theme.css");
-const SKYLIGHTING_CSS: &str = include_str!("../../docs/css/skylighting-solarized-theme.css");
-const SIDENOTE_LUA: &str = include_str!("../../pandoc-sidenote.lua");
+const TEMPLATE_HTML: &str = include_str!("../assets/template.html5");
+const THEME_CSS: &str = include_str!("../assets/css/theme.css");
+const SKYLIGHTING_CSS: &str = include_str!("../assets/css/skylighting-solarized-theme.css");
+const SIDENOTE_LUA: &str = include_str!("../assets/pandoc-sidenote.lua");
 const DEFAULT_KATEX: &str = "https://cdn.jsdelivr.net/npm/katex@0.15.1/dist/";
 
 fn write_file(path: &Path, contents: &str) -> io::Result<()> {
@@ -24,13 +24,13 @@ fn usage(bin: &str) {
 
 fn temp_root() -> io::Result<PathBuf> {
     let mut dir = env::temp_dir();
-    dir.push(format!("pandoc-pretty-{}", process::id()));
+    dir.push(format!("mdr-{}", process::id()));
     fs::create_dir_all(&dir)?;
     Ok(dir)
 }
 
 fn katex_url() -> String {
-    let mut url = env::var("PANDOC_PRETTY_KATEX").unwrap_or_else(|_| DEFAULT_KATEX.to_string());
+    let mut url = env::var("MDR_KATEX").unwrap_or_else(|_| DEFAULT_KATEX.to_string());
     if !url.ends_with('/') {
         url.push('/');
     }
@@ -110,7 +110,7 @@ fn confirm_overwrite(path: &Path, bin: &str) {
 
 fn main() {
     let mut args = env::args();
-    let bin = args.next().unwrap_or_else(|| "pandoc-pretty".into());
+    let bin = args.next().unwrap_or_else(|| "mdr".into());
     let input = args.next();
     let mut output = args.next();
 
@@ -135,7 +135,7 @@ fn main() {
             derived
                 .to_str()
                 .unwrap_or_else(|| {
-                    eprintln!("pandoc-pretty: could not derive output path from input");
+                    eprintln!("mdr: could not derive output path from input");
                     process::exit(64);
                 })
                 .to_string(),
@@ -150,7 +150,7 @@ fn main() {
     let temp = match temp_root() {
         Ok(dir) => dir,
         Err(err) => {
-            eprintln!("pandoc-pretty: failed to create temp dir: {err}");
+            eprintln!("mdr: failed to create temp dir: {err}");
             process::exit(1);
         }
     };
@@ -170,7 +170,7 @@ fn main() {
 
     for (path, contents) in writes {
         if let Err(err) = write_file(path, contents) {
-            eprintln!("pandoc-pretty: failed to write {path:?}: {err}");
+            eprintln!("mdr: failed to write {path:?}: {err}");
             cleanup(&temp);
             process::exit(1);
         }
@@ -215,11 +215,11 @@ fn main() {
         Ok(code) if code.success() => {}
         Ok(code) => {
             let code = code.code().unwrap_or(-1);
-            eprintln!("pandoc-pretty: pandoc failed with exit code {code}");
+            eprintln!("mdr: pandoc failed with exit code {code}");
             process::exit(code);
         }
         Err(err) => {
-            eprintln!("pandoc-pretty: failed to spawn pandoc: {err}");
+            eprintln!("mdr: failed to spawn pandoc: {err}");
             process::exit(127);
         }
     }
@@ -228,6 +228,6 @@ fn main() {
 fn cleanup(temp: &Path) {
     if let Err(err) = fs::remove_dir_all(temp) {
         // Not fatal; leave directory behind for inspection.
-        eprintln!("pandoc-pretty: warning: unable to remove temp dir {temp:?}: {err}");
+        eprintln!("mdr: warning: unable to remove temp dir {temp:?}: {err}");
     }
 }

@@ -55,17 +55,15 @@ fn writes_default_output_when_not_provided() {
     let input = dir.join("note.md");
     fs::write(&input, "# Title\n\nBody").unwrap();
 
-    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("pandoc-pretty"));
-    cmd.arg(&input)
-        .env("PANDOC_PRETTY_KATEX", katex_fixture_url())
-        .env(
-            "PATH",
-            format!(
-                "{}:{}",
-                dir.display(),
-                std::env::var("PATH").unwrap_or_default()
-            ),
-        );
+    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("mdr"));
+    cmd.arg(&input).env("MDR_KATEX", katex_fixture_url()).env(
+        "PATH",
+        format!(
+            "{}:{}",
+            dir.display(),
+            std::env::var("PATH").unwrap_or_default()
+        ),
+    );
 
     cmd.assert().success();
 
@@ -102,10 +100,10 @@ fn real_pandoc_embeds_assets_and_template() {
         .join("full.md");
     let output = dir.join("full.html");
 
-    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("pandoc-pretty"));
+    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("mdr"));
     cmd.arg(&input)
         .arg(&output)
-        .env("PANDOC_PRETTY_KATEX", katex_fixture_url());
+        .env("MDR_KATEX", katex_fixture_url());
     cmd.assert().success();
 
     let html = fs::read_to_string(&output).unwrap();
@@ -140,7 +138,7 @@ fn errors_when_pandoc_missing() {
     fs::write(&input, "text").unwrap();
     let output = dir.join("bar.html");
 
-    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("pandoc-pretty"));
+    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("mdr"));
     cmd.arg(&input).arg(&output).env("PATH", "");
 
     cmd.assert()
@@ -158,17 +156,15 @@ fn adds_fallback_title_and_embeds_resources() {
     let input = dir.join("readme.md");
     fs::write(&input, "No title here").unwrap();
 
-    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("pandoc-pretty"));
-    cmd.arg(&input)
-        .env("PANDOC_PRETTY_KATEX", katex_fixture_url())
-        .env(
-            "PATH",
-            format!(
-                "{}:{}",
-                dir.display(),
-                std::env::var("PATH").unwrap_or_default()
-            ),
-        );
+    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("mdr"));
+    cmd.arg(&input).env("MDR_KATEX", katex_fixture_url()).env(
+        "PATH",
+        format!(
+            "{}:{}",
+            dir.display(),
+            std::env::var("PATH").unwrap_or_default()
+        ),
+    );
 
     cmd.assert().success();
 
@@ -195,10 +191,10 @@ fn aborts_when_user_declines_overwrite() {
     let output = dir.join("note.html");
     fs::write(&output, "keep".as_bytes()).unwrap();
 
-    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("pandoc-pretty"));
+    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("mdr"));
     cmd.arg(&input)
         .arg(&output)
-        .env("PANDOC_PRETTY_KATEX", katex_fixture_url())
+        .env("MDR_KATEX", katex_fixture_url())
         .env(
             "PATH",
             format!(
@@ -231,10 +227,10 @@ fn overwrites_when_user_confirms() {
     let output = dir.join("note.html");
     fs::write(&output, "keep".as_bytes()).unwrap();
 
-    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("pandoc-pretty"));
+    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("mdr"));
     cmd.arg(&input)
         .arg(&output)
-        .env("PANDOC_PRETTY_KATEX", katex_fixture_url())
+        .env("MDR_KATEX", katex_fixture_url())
         .env(
             "PATH",
             format!(
@@ -261,17 +257,15 @@ fn preserves_existing_title_metadata() {
     let input = dir.join("paper.md");
     fs::write(&input, "---\ntitle: Custom Paper\n---\n\nBody text.\n").unwrap();
 
-    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("pandoc-pretty"));
-    cmd.arg(&input)
-        .env("PANDOC_PRETTY_KATEX", katex_fixture_url())
-        .env(
-            "PATH",
-            format!(
-                "{}:{}",
-                dir.display(),
-                std::env::var("PATH").unwrap_or_default()
-            ),
-        );
+    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("mdr"));
+    cmd.arg(&input).env("MDR_KATEX", katex_fixture_url()).env(
+        "PATH",
+        format!(
+            "{}:{}",
+            dir.display(),
+            std::env::var("PATH").unwrap_or_default()
+        ),
+    );
 
     cmd.assert().success();
 
