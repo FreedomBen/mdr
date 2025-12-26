@@ -5,6 +5,9 @@ edition = "2021"
 license = "BlueOak-1.0.0"
 description = "Pandoc wrapper that ships with an embedded template, CSS, and sidenote filter."
 
+[dependencies]
+notify = "6"
+
 [profile.release]
 lto = true
 codegen-units = 1

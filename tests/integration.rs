@@ -5,6 +5,8 @@ use std::io::Write;
 use std::os::unix::fs::PermissionsExt;
 use std::path::PathBuf;
 use std::process;
+use std::thread;
+use std::time::{Duration, Instant};
 use tempfile::tempdir;
 
 fn katex_fixture_url() -> String {
@@ -278,4 +280,73 @@ fn preserves_existing_title_metadata() {
     assert!(html.contains("--embed-resources"));
     assert!(html.contains("--standalone"));
     assert!(html.contains("fake</html>"));
+}
+
+#[test]
+fn watch_rebuilds_on_change() {
+    let tmp = tempdir().unwrap();
+    let dir = tmp.path().to_path_buf();
+    let fake = make_fake_pandoc(&dir);
+
+    let input = dir.join("note.md");
+    fs::write(&input, "# Title\n\nBody").unwrap();
+
+    let output = dir.join("note.html");
+
+    let mut child = process::Command::new(assert_cmd::cargo::cargo_bin!("mdr"))
+        .arg("--watch")
+        .arg(&input)
+        .arg(&output)
+        .env("MDR_KATEX", katex_fixture_url())
+        .env(
+            "PATH",
+            format!(
+                "{}:{}",
+                dir.display(),
+                std::env::var("PATH").unwrap_or_default()
+            ),
+        )
+        .stdout(process::Stdio::null())
+        .stderr(process::Stdio::null())
+        .spawn()
+        .expect("spawn watcher");
+
+    // Wait for initial build
+    let initial_ready = wait_until(Duration::from_secs(5), || {
+        fs::metadata(&output).and_then(|m| m.modified()).ok()
+    });
+    let initial_mtime = initial_ready.expect("initial build did not finish in time");
+
+    // Ensure mtime granularity won't mask the rebuild
+    thread::sleep(Duration::from_millis(1100));
+
+    // Trigger rebuild
+    fs::write(&input, "# Title\n\nUpdated").unwrap();
+
+    let rebuilt = wait_until(Duration::from_secs(5), || {
+        fs::metadata(&output)
+            .and_then(|m| m.modified())
+            .ok()
+            .filter(|t| *t > initial_mtime)
+    });
+
+    // Clean up watcher regardless of assertion outcome
+    let _ = child.kill();
+    let _ = child.wait();
+
+    rebuilt.expect("watch rebuild did not happen in time");
+    assert!(fs::metadata(&fake).unwrap().is_file());
+}
+
+fn wait_until<T>(timeout: Duration, mut f: impl FnMut() -> Option<T>) -> Option<T> {
+    let deadline = Instant::now() + timeout;
+    loop {
+        if let Some(v) = f() {
+            return Some(v);
+        }
+        if Instant::now() >= deadline {
+            return None;
+        }
+        thread::sleep(Duration::from_millis(50));
+    }
 }

@@ -3,6 +3,13 @@ use std::fs::{self, File};
 use std::io::{self, Write};
 use std::path::{Path, PathBuf};
 use std::process::{self, Command};
+use std::sync::mpsc;
+use std::time::{Duration, Instant};
+
+use notify::{
+    recommended_watcher, Config as NotifyConfig, EventKind, RecommendedWatcher, RecursiveMode,
+    Watcher,
+};
 
 const TEMPLATE_HTML: &str = include_str!("../assets/template.html5");
 const THEME_CSS: &str = include_str!("../assets/css/theme.css");
@@ -19,7 +26,7 @@ fn write_file(path: &Path, contents: &str) -> io::Result<()> {
 }
 
 fn usage(bin: &str) {
-    eprintln!("usage: {bin} <input.md> [output.html]");
+    eprintln!("usage: {bin} [-w|--watch] <input.md> [output.html]");
 }
 
 fn temp_root() -> io::Result<PathBuf> {
@@ -111,26 +118,35 @@ fn confirm_overwrite(path: &Path, bin: &str) {
 fn main() {
     let mut args = env::args();
     let bin = args.next().unwrap_or_else(|| "mdr".into());
-    let input = args.next();
-    let mut output = args.next();
 
-    if input.is_none() {
+    let mut watch = false;
+    let mut positional: Vec<String> = Vec::new();
+
+    for arg in args {
+        match arg.as_str() {
+            "-w" | "--watch" => watch = true,
+            "-h" | "--help" => {
+                usage(&bin);
+                process::exit(0);
+            }
+            _ => positional.push(arg),
+        }
+    }
+
+    if positional.is_empty() || positional.len() > 2 {
         usage(&bin);
         process::exit(64);
     }
 
-    let input = input.unwrap();
+    let input = positional[0].clone();
     let input_path = PathBuf::from(&input);
 
     ensure_pandoc(&bin);
 
+    let mut output = positional.get(1).cloned();
     if output.is_none() {
         let mut derived = input_path.clone();
-        if derived.extension().is_some() {
-            derived.set_extension("html");
-        } else {
-            derived.set_extension("html");
-        }
+        derived.set_extension("html");
         output = Some(
             derived
                 .to_str()
@@ -176,18 +192,63 @@ fn main() {
         }
     }
 
+    if let Err(code) = build_once(
+        &input_path,
+        &output_path,
+        &template_path,
+        &lua_path,
+        &theme_path,
+        &skylighting_path,
+    ) {
+        cleanup(&temp);
+        process::exit(code);
+    }
+
+    if watch {
+        if let Err(code) = watch_loop(
+            &bin,
+            &input_path,
+            &output_path,
+            &template_path,
+            &lua_path,
+            &theme_path,
+            &skylighting_path,
+        ) {
+            cleanup(&temp);
+            process::exit(code);
+        }
+    }
+
+    cleanup(&temp);
+}
+
+fn cleanup(temp: &Path) {
+    if let Err(err) = fs::remove_dir_all(temp) {
+        // Not fatal; leave directory behind for inspection.
+        eprintln!("mdr: warning: unable to remove temp dir {temp:?}: {err}");
+    }
+}
+
+fn build_once(
+    input_path: &Path,
+    output_path: &Path,
+    template_path: &Path,
+    lua_path: &Path,
+    theme_path: &Path,
+    skylighting_path: &Path,
+) -> Result<(), i32> {
     let mut cmd = Command::new("pandoc");
     cmd.arg(format!("--katex={}", katex_url()))
         .arg("--from")
         .arg("markdown+tex_math_single_backslash")
         .arg("--embed-resources")
         .arg("--lua-filter")
-        .arg(&lua_path)
+        .arg(lua_path)
         .arg("--to")
         .arg("html5+smart")
         .arg("--standalone");
 
-    if !has_title_metadata(&input_path) {
+    if !has_title_metadata(input_path) {
         let fallback_title = input_path
             .file_stem()
             .and_then(|s| s.to_str())
@@ -196,38 +257,111 @@ fn main() {
     }
 
     cmd.arg("--template")
-        .arg(&template_path)
+        .arg(template_path)
         .arg("--css")
-        .arg(&theme_path)
+        .arg(theme_path)
         .arg("--css")
-        .arg(&skylighting_path)
+        .arg(skylighting_path)
         .arg("--toc")
         .arg("--wrap=none")
         .arg("--output")
-        .arg(&output_path)
-        .arg(&input);
+        .arg(output_path)
+        .arg(input_path);
 
     let status = cmd.status();
 
-    cleanup(&temp);
-
     match status {
-        Ok(code) if code.success() => {}
+        Ok(code) if code.success() => Ok(()),
         Ok(code) => {
             let code = code.code().unwrap_or(-1);
             eprintln!("mdr: pandoc failed with exit code {code}");
-            process::exit(code);
+            Err(code)
         }
         Err(err) => {
             eprintln!("mdr: failed to spawn pandoc: {err}");
-            process::exit(127);
+            Err(127)
         }
     }
 }
 
-fn cleanup(temp: &Path) {
-    if let Err(err) = fs::remove_dir_all(temp) {
-        // Not fatal; leave directory behind for inspection.
-        eprintln!("mdr: warning: unable to remove temp dir {temp:?}: {err}");
+fn watch_loop(
+    bin: &str,
+    input_path: &Path,
+    output_path: &Path,
+    template_path: &Path,
+    lua_path: &Path,
+    theme_path: &Path,
+    skylighting_path: &Path,
+) -> Result<(), i32> {
+    eprintln!(
+        "{bin}: watching {} for changes (press Ctrl+C to stop)",
+        input_path.display()
+    );
+
+    let (tx, rx) = mpsc::channel();
+
+    let mut watcher: RecommendedWatcher = recommended_watcher(move |res| {
+        let _ = tx.send(res);
+    })
+    .map_err(|err| {
+        eprintln!("mdr: failed to start watcher: {err}");
+        1
+    })?;
+
+    if let Err(err) = watcher.configure(NotifyConfig::default()) {
+        eprintln!("mdr: watcher configuration failed: {err}");
+        return Err(1);
     }
+
+    if let Err(err) = watcher.watch(input_path, RecursiveMode::NonRecursive) {
+        eprintln!("mdr: unable to watch {}: {err}", input_path.display());
+        return Err(1);
+    }
+
+    let debounce = Duration::from_millis(250);
+    let mut last_build = Instant::now() - debounce;
+
+    while let Ok(res) = rx.recv() {
+        match res {
+            Ok(event) => {
+                if !relevant_event(&event) {
+                    continue;
+                }
+
+                if last_build.elapsed() < debounce {
+                    continue;
+                }
+
+                eprintln!("{bin}: change detected; rebuilding...");
+                if !input_path.exists() {
+                    eprintln!(
+                        "{bin}: input file {} is missing; waiting for it to reappear",
+                        input_path.display()
+                    );
+                    last_build = Instant::now();
+                    continue;
+                }
+                if let Err(code) = build_once(
+                    input_path,
+                    output_path,
+                    template_path,
+                    lua_path,
+                    theme_path,
+                    skylighting_path,
+                ) {
+                    return Err(code);
+                }
+                last_build = Instant::now();
+            }
+            Err(err) => {
+                eprintln!("mdr: watch error: {err}");
+            }
+        }
+    }
+
+    Ok(())
+}
+
+fn relevant_event(event: &notify::Event) -> bool {
+    matches!(event.kind, EventKind::Modify(_) | EventKind::Create(_))
 }
