@@ -1,5 +1,8 @@
 # Repository Guidelines
 
+## Agent instructions
+- Never modify TODO.  Don't even read it because it doesn't contain any instructions or help for you.
+
 ## Project Structure & Module Organization
 - `src/` Rust sources for the `mdr` CLI; `assets/` embeds the template, CSS, and sidenote filter.
 - `site/src/` markdown for the demo site; `site/public/` static assets copied into `docs/` at build time; `docs/` is generated output.
