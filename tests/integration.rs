@@ -1,7 +1,8 @@
 use assert_cmd::Command;
 use predicates::str::contains;
 use std::fs;
-use std::io::Write;
+use std::io::{Read, Write};
+use std::net::TcpStream;
 use std::os::unix::fs::PermissionsExt;
 use std::path::PathBuf;
 use std::process;
@@ -349,4 +350,67 @@ fn wait_until<T>(timeout: Duration, mut f: impl FnMut() -> Option<T>) -> Option<
         }
         thread::sleep(Duration::from_millis(50));
     }
+}
+
+fn pick_free_port() -> Option<u16> {
+    std::net::TcpListener::bind("127.0.0.1:0")
+        .ok()
+        .and_then(|l| l.local_addr().ok())
+        .map(|addr| addr.port())
+}
+
+#[test]
+fn serves_html_over_http() {
+    let tmp = tempdir().unwrap();
+    let dir = tmp.path().to_path_buf();
+    let fake = make_fake_pandoc(&dir);
+
+    let input = dir.join("note.md");
+    fs::write(&input, "# Title\n\nBody").unwrap();
+
+    let output = dir.join("note.html");
+    let Some(port) = pick_free_port() else {
+        eprintln!("skipping serves_html_over_http: unable to bind loopback port");
+        return;
+    };
+
+    let mut child = process::Command::new(assert_cmd::cargo::cargo_bin!("mdr"))
+        .arg("--serve")
+        .arg("--port")
+        .arg(port.to_string())
+        .arg(&input)
+        .arg(&output)
+        .env("MDR_KATEX", katex_fixture_url())
+        .env(
+            "PATH",
+            format!(
+                "{}:{}",
+                dir.display(),
+                std::env::var("PATH").unwrap_or_default()
+            ),
+        )
+        .stdout(process::Stdio::null())
+        .stderr(process::Stdio::null())
+        .spawn()
+        .expect("spawn serve mode");
+
+    // Wait for server to come up
+    let mut stream = wait_until(Duration::from_secs(5), || {
+        TcpStream::connect(("127.0.0.1", port)).ok()
+    })
+    .expect("server did not start in time");
+
+    stream
+        .write_all(b"GET / HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n")
+        .unwrap();
+
+    let mut resp = String::new();
+    stream.read_to_string(&mut resp).unwrap();
+
+    let _ = child.kill();
+    let _ = child.wait();
+
+    assert!(resp.contains("fake</html>"));
+    assert!(resp.contains("200 OK"));
+    assert!(fs::metadata(&fake).unwrap().is_file());
 }
