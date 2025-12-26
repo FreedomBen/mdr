@@ -24,10 +24,6 @@ TARGET_FLAG := --target $(TARGET)
 BIN_RELEASE := $(CARGO_TARGET_DIR)/$(TARGET)/release/$(BIN)
 endif
 
-SITE_MD := $(shell find site/src -type f -name '*.md')
-SITE_HTML := $(patsubst site/src/%.md,docs/%.html,$(SITE_MD))
-PUBLIC_FILES := $(shell find site/public -type f)
-
 .PHONY: all
 all: build
 
@@ -61,26 +57,6 @@ test:
 watch-cli:
 	cargo watch -x check -x test
 
-.PHONY: site
-site: docs-assets $(SITE_HTML)
-
-.PHONY: docs-assets
-docs-assets: $(PUBLIC_FILES) | docs
-	rm -rf docs
-	mkdir -p docs
-	cp -vr site/public/. docs
-
-docs:
-	mkdir -p docs
-
-docs/%.html: site/src/%.md $(BIN_DEBUG) | docs
-	mkdir -p $(dir $@)
-	$(BIN_DEBUG) "$<" "$@"
-
-.PHONY: watch
-watch:
-	./tools/serve.sh
-
 .PHONY: clean
 clean:
-	rm -rf docs dist
+	rm -rf dist

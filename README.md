@@ -19,17 +19,6 @@ the KaTeX CDN base with `MDR_KATEX=https://…/`.
 - `make test` – run unit + integration tests
 - `make watch-cli` – `cargo watch -x check -x test` (requires `cargo-watch`)
 
-## Site/docs
-
-The demo site lives in `site/`:
-
-- Markdown sources: `site/src/`
-- Static assets: `site/public/`
-- Generated output: `docs/`
-
-Build once with `make site`. Serve and auto‑rebuild with `make watch`
-(`watchman-make` required). The site build dogfoods the `mdr` binary.
-
 ## Assets
 
 - `assets/template.html5`
