@@ -423,8 +423,13 @@ async fn watch_and_rebuild(
         return Err(1);
     }
 
-    if let Err(err) = watcher.watch(&input_path, RecursiveMode::NonRecursive) {
-        eprintln!("mdr: unable to watch {}: {err}", input_path.display());
+    let watch_target = input_path
+        .parent()
+        .map(Path::to_path_buf)
+        .unwrap_or_else(|| PathBuf::from("."));
+
+    if let Err(err) = watcher.watch(&watch_target, RecursiveMode::NonRecursive) {
+        eprintln!("mdr: unable to watch {}: {err}", watch_target.display());
         return Err(1);
     }
 
@@ -442,7 +447,7 @@ async fn watch_and_rebuild(
             Some(res) = rx.recv() => {
                 match res {
                     Ok(event) => {
-                        if !relevant_event(&event) {
+                        if !relevant_event(&event) || !event_targets_input(&event, &input_path) {
                             continue;
                         }
 
@@ -608,7 +613,14 @@ fn cleanup(temp: &Path) {
 }
 
 fn relevant_event(event: &notify::Event) -> bool {
-    matches!(event.kind, EventKind::Modify(_) | EventKind::Create(_))
+    matches!(
+        event.kind,
+        EventKind::Modify(_) | EventKind::Create(_) | EventKind::Remove(_)
+    )
+}
+
+fn event_targets_input(event: &notify::Event, input: &Path) -> bool {
+    event.paths.iter().any(|p| p == input)
 }
 
 fn write_file(path: &Path, contents: &str) -> io::Result<()> {
