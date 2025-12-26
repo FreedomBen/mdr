@@ -62,16 +62,16 @@ watch-cli:
 	cargo watch -x check -x test
 
 .PHONY: site
-site: docs/.nojekyll $(SITE_HTML)
+site: docs-assets $(SITE_HTML)
 
-.PHONY: docs/.nojekyll
-docs:
-	mkdir -p docs
-
-docs/.nojekyll: $(PUBLIC_FILES) | docs
+.PHONY: docs-assets
+docs-assets: $(PUBLIC_FILES) | docs
 	rm -rf docs
 	mkdir -p docs
 	cp -vr site/public/. docs
+
+docs:
+	mkdir -p docs
 
 docs/%.html: site/src/%.md $(BIN_DEBUG) | docs
 	mkdir -p $(dir $@)
