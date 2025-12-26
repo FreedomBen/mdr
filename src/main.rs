@@ -11,6 +11,7 @@ use axum::http::{header, StatusCode};
 use axum::response::IntoResponse;
 use axum::routing::get;
 use axum::Router;
+use notify::event::ModifyKind;
 use notify::{
     recommended_watcher, Config as NotifyConfig, EventKind, RecommendedWatcher, RecursiveMode,
     Watcher,
@@ -428,6 +429,17 @@ async fn watch_and_rebuild(
         .map(Path::to_path_buf)
         .unwrap_or_else(|| PathBuf::from("."));
 
+    let canonical_input = match input_path.canonicalize() {
+        Ok(path) => path,
+        Err(err) => {
+            eprintln!(
+                "{bin}: warning: could not canonicalize input {}: {err}",
+                input_path.display()
+            );
+            input_path.clone()
+        }
+    };
+
     if let Err(err) = watcher.watch(&watch_target, RecursiveMode::NonRecursive) {
         eprintln!("mdr: unable to watch {}: {err}", watch_target.display());
         return Err(1);
@@ -447,7 +459,9 @@ async fn watch_and_rebuild(
             Some(res) = rx.recv() => {
                 match res {
                     Ok(event) => {
-                        if !relevant_event(&event) || !event_targets_input(&event, &input_path) {
+                        if !relevant_event(&event)
+                            || !event_targets_input(&event, &input_path, &watch_target, &canonical_input)
+                        {
                             continue;
                         }
 
@@ -460,7 +474,6 @@ async fn watch_and_rebuild(
                                 "{bin}: input file {} is missing; waiting for it to reappear",
                                 input_path.display()
                             );
-                            last_build = Instant::now();
                             continue;
                         }
 
@@ -615,12 +628,44 @@ fn cleanup(temp: &Path) {
 fn relevant_event(event: &notify::Event) -> bool {
     matches!(
         event.kind,
-        EventKind::Modify(_) | EventKind::Create(_) | EventKind::Remove(_)
+        EventKind::Modify(
+            ModifyKind::Name(_) | ModifyKind::Data(_) | ModifyKind::Metadata(_) | ModifyKind::Any
+        ) | EventKind::Create(_)
+            | EventKind::Remove(_)
     )
 }
 
-fn event_targets_input(event: &notify::Event, input: &Path) -> bool {
-    event.paths.iter().any(|p| p == input)
+fn event_targets_input(
+    event: &notify::Event,
+    input: &Path,
+    watch_dir: &Path,
+    canonical_input: &Path,
+) -> bool {
+    for path in &event.paths {
+        let candidate = if path.is_absolute() {
+            path.clone()
+        } else {
+            watch_dir.join(path)
+        };
+
+        if let Ok(canon) = candidate.canonicalize() {
+            if &canon == canonical_input {
+                return true;
+            }
+        }
+
+        if let (Some(ev), Some(inp)) = (candidate.file_name(), input.file_name()) {
+            if ev == inp {
+                return true;
+            }
+        }
+
+        if candidate == *input {
+            return true;
+        }
+    }
+
+    false
 }
 
 fn write_file(path: &Path, contents: &str) -> io::Result<()> {
