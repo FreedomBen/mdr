@@ -13,6 +13,7 @@ CARGO ?= cargo
 CARGO_TARGET_DIR ?= $(CURDIR)/target
 BIN := mdr
 TARGET ?=
+MUSL_TARGET ?= x86_64-unknown-linux-musl
 
 BIN_DEBUG := $(CARGO_TARGET_DIR)/debug/$(BIN)
 
@@ -37,9 +38,10 @@ $(BIN_DEBUG): Cargo.toml src/main.rs assets/template.html5 assets/css/theme.css 
 dist: dist/$(BIN)
 
 dist/$(BIN): Cargo.toml src/main.rs assets/template.html5 assets/css/theme.css assets/css/skylighting-solarized-theme.css assets/pandoc-sidenote.lua
-	CARGO_TARGET_DIR=$(CARGO_TARGET_DIR) $(CARGO) build --release $(TARGET_FLAG)
-	mkdir -p dist
-	cp $(BIN_RELEASE) dist/$(BIN)
+	@TGT="$(if $(TARGET),$(TARGET),$(MUSL_TARGET))"; \
+		CARGO_TARGET_DIR=$(CARGO_TARGET_DIR) $(CARGO) build --release --target $$TGT; \
+		mkdir -p dist; \
+		cp $(CARGO_TARGET_DIR)/$$TGT/release/$(BIN) dist/$(BIN)
 
 .PHONY: fmt
 fmt:

@@ -22,7 +22,8 @@ the KaTeX CDN base with `MDR_KATEX=https://…/`.
 ## Developing
 
 - `make` / `make build` – build debug binary at `target/debug/mdr`
-- `make dist` – build a release binary into `dist/mdr` (set `TARGET` to cross‑compile)
+- `make dist` – build a statically linked musl release binary (default target
+  `x86_64-unknown-linux-musl`) into `dist/mdr`; set `TARGET` to override
 - `make fmt` / `make lint` – format and run clippy (`-D warnings`)
 - `make test` – run unit + integration tests
 - `make watch-cli` – `cargo watch -x check -x test` (requires `cargo-watch`)
