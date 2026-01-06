@@ -14,6 +14,7 @@ CARGO_TARGET_DIR ?= $(CURDIR)/target
 BIN := mdr
 TARGET ?=
 MUSL_TARGET ?= x86_64-unknown-linux-musl
+RUBY ?= ruby
 
 BIN_DEBUG := $(CARGO_TARGET_DIR)/debug/$(BIN)
 
@@ -59,6 +60,10 @@ lint:
 .PHONY: test
 test:
 	$(CARGO) test
+
+.PHONY: test-integration
+test-integration: build
+	$(RUBY) tests/e2e/test_mdr_e2e.rb
 
 .PHONY: watch-cli
 watch-cli:
