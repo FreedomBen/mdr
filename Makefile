@@ -61,6 +61,9 @@ lint:
 test:
 	$(CARGO) test
 
+.PHONY: test-all
+test-all: test test-integration
+
 .PHONY: test-integration
 test-integration: build
 	$(RUBY) tests/e2e/test_mdr_e2e.rb
