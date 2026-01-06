@@ -95,7 +95,36 @@ async fn run() -> Result<(), i32> {
 
 fn usage(bin: &str) {
     eprintln!(
-        "usage: {bin} [-w|--watch] [-P|--public] [--port <port>] [--host <host>] [-o|--output <file>] [-n|--no-clobber] <input.md>"
+        "\
+{bin} - Markdown to HTML renderer with live preview
+
+USAGE
+  {bin} [options] <input.md>
+
+HOW IT BEHAVES
+  - No -o/--output: serves and auto-rebuilds at http://127.0.0.1:8080 (watch + server on).
+  - With -o/--output: writes once to the file you give; add -w to keep rebuilding.
+  - Default output name is <input>.html next to your markdown.
+
+OPTIONS
+  -w, --watch           Rebuild on changes (implied in serve mode).
+  -P, --public          Bind to 0.0.0.0 so other devices can view the preview.
+  --port <port>         HTTP port for the preview server (default 8080).
+  --host <host>         Host/interface to bind (default 127.0.0.1).
+  -o, --output <file>   Output HTML path (default: derive from input).
+  -n, --no-clobber      Ask before overwriting an existing output file.
+  -h, --help            Show this message.
+
+EXAMPLES
+  {bin} README.md
+      Build, serve, and auto-reload at http://127.0.0.1:8080.
+
+  {bin} -o docs/readme.html README.md
+      Export once to docs/readme.html (no server).
+
+  {bin} -w -o docs/readme.html README.md
+      Keep exporting to docs/readme.html on every change.
+"
     );
 }
 
