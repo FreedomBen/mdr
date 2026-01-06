@@ -1,5 +1,6 @@
 use std::env;
 use std::fs::{self, File};
+use std::io::IsTerminal;
 use std::io::{self, Write};
 use std::path::{Path, PathBuf};
 use std::process::{self, Command};
@@ -25,6 +26,7 @@ const THEME_CSS: &str = include_str!("../assets/css/theme.css");
 const SKYLIGHTING_CSS: &str = include_str!("../assets/css/skylighting-solarized-theme.css");
 const SIDENOTE_LUA: &str = include_str!("../assets/pandoc-sidenote.lua");
 const DEFAULT_KATEX: &str = "https://cdn.jsdelivr.net/npm/katex@0.15.1/dist/";
+const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 #[derive(Clone)]
 struct Assets {
@@ -94,28 +96,36 @@ async fn run() -> Result<(), i32> {
 }
 
 fn usage(bin: &str) {
+    let is_tty = io::stderr().is_terminal();
+    let (b, c, d, r) = if is_tty {
+        ("\x1b[1m", "\x1b[36m", "\x1b[2m", "\x1b[0m")
+    } else {
+        ("", "", "", "")
+    };
+
     eprintln!(
         "\
-{bin} - Markdown to HTML renderer with live preview
+{b}{c}{bin}{r} {d}(v{VERSION}){r} - Markdown to HTML renderer with live preview
 
-USAGE
-  {bin} [options] <input.md>
+{b}USAGE{r}
+  {b}{bin}{r} [options] <input.md>
 
-HOW IT BEHAVES
-  - No -o/--output: serves and auto-rebuilds at http://127.0.0.1:8080 (watch + server on).
-  - With -o/--output: writes once to the file you give; add -w to keep rebuilding.
+{b}HOW IT BEHAVES{r}
+  - {b}No -o/--output{r}: serves and auto-rebuilds at http://127.0.0.1:8080 (watch + server on).
+  - {b}With -o/--output{r}: writes once (or with -w, on every change); if you omit <file>, it uses the default name.
   - Default output name is <input>.html next to your markdown.
 
-OPTIONS
-  -w, --watch           Rebuild on changes (implied in serve mode).
-  -P, --public          Bind to 0.0.0.0 so other devices can view the preview.
-  --port <port>         HTTP port for the preview server (default 8080).
-  --host <host>         Host/interface to bind (default 127.0.0.1).
-  -o, --output <file>   Output HTML path (default: derive from input).
-  -n, --no-clobber      Ask before overwriting an existing output file.
-  -h, --help            Show this message.
+{b}OPTIONS{r}
+  {c}-w{r}, {c}--watch{r}           Rebuild on changes (implied in serve mode).
+  {c}-P{r}, {c}--public{r}          Bind to 0.0.0.0 so other devices can view the preview.
+  {c}--port{r} <port>         HTTP port for the preview server ({d}default 8080{r}).
+  {c}--host{r} <host>         Host/interface to bind ({d}default 127.0.0.1{r}).
+  {c}-o{r}, {c}--output{r} [<file>] Output HTML path; omit <file> to keep the default name.
+  {c}-n{r}, {c}--no-clobber{r}      Ask before overwriting an existing output file.
+  {c}-h{r}, {c}--help{r}            Show this message.
+  {c}-v{r}, {c}--version{r}         Show version and exit.
 
-EXAMPLES
+{b}EXAMPLES{r}
   {bin} README.md
       Build, serve, and auto-reload at http://127.0.0.1:8080.
 
@@ -126,6 +136,9 @@ EXAMPLES
       Keep exporting to docs/readme.html on every change.
 "
     );
+
+    // Reset color in case the terminal was mid-line.
+    eprint!("{r}");
 }
 
 fn parse_args() -> Result<Config, i32> {
@@ -146,6 +159,10 @@ fn parse_args() -> Result<Config, i32> {
             "-w" | "--watch" => watch = true,
             "-P" | "--public" => {
                 host = "0.0.0.0".into();
+            }
+            "-v" | "--version" => {
+                eprintln!("{bin} {VERSION}");
+                process::exit(0);
             }
             "-h" | "--help" => {
                 usage(&bin);
