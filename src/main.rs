@@ -100,7 +100,7 @@ fn usage(bin: &str) {
 }
 
 fn parse_args() -> Result<Config, i32> {
-    let mut args = env::args();
+    let mut args = env::args().peekable();
     let bin = args.next().unwrap_or_else(|| "mdr".into());
 
     let mut watch = false;
@@ -109,6 +109,7 @@ fn parse_args() -> Result<Config, i32> {
     let mut host: String = "127.0.0.1".into();
     let mut no_clobber = false;
     let mut output: Option<PathBuf> = None;
+    let mut output_flag = false;
     let mut positional: Vec<String> = Vec::new();
 
     while let Some(arg) = args.next() {
@@ -143,11 +144,13 @@ fn parse_args() -> Result<Config, i32> {
             }
             "-n" | "--no-clobber" => no_clobber = true,
             "-o" | "--output" => {
-                let Some(val) = args.next() else {
-                    eprintln!("{bin}: --output requires a value");
-                    return Err(64);
-                };
-                output = Some(PathBuf::from(val));
+                output_flag = true;
+                if let Some(next) = args.peek() {
+                    if !next.starts_with('-') {
+                        let val = args.next().expect("peeked Some");
+                        output = Some(PathBuf::from(val));
+                    }
+                }
             }
             _ if arg.starts_with('-') => {
                 eprintln!("{bin}: unknown option: {arg}");
@@ -164,12 +167,12 @@ fn parse_args() -> Result<Config, i32> {
     }
 
     let input_path = PathBuf::from(&positional[0]);
-    let output_provided = output.is_some();
     let output_path = output.unwrap_or_else(|| {
         let mut derived = input_path.clone();
         derived.set_extension("html");
         derived
     });
+    let output_provided = output_flag;
 
     if output_path.as_os_str().is_empty() {
         eprintln!("mdr: could not derive output path from input");

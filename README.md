@@ -10,7 +10,8 @@ mdr [-w|--watch] [-P|--public] [--port <port>] [--host <host>] [-o|--output <fil
 
 If you pass `-o/--output`, `mdr` writes the converted HTML there and exits (or
 keeps watching with `-w`). If you omit `-o`, `mdr` serves the HTML over HTTP
-using a derived output path (input filename with `.html`). Override the KaTeX
+using a derived output path (input filename with `.html`). Passing `-o` with no
+path also uses the derived output path. Override the KaTeX
 CDN base with `MDR_KATEX=https://…/`.
 
 - `-w`/`--watch` rebuilds the HTML whenever the input file changes (Linux first,

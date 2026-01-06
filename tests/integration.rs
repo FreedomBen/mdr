@@ -83,6 +83,36 @@ fn writes_output_when_flag_provided() {
     assert!(fs::metadata(&fake).unwrap().is_file());
 }
 
+#[test]
+fn output_flag_without_value_uses_default_path() {
+    let tmp = tempdir().unwrap();
+    let dir = tmp.path().to_path_buf();
+    let fake = make_fake_pandoc(&dir);
+
+    let input = dir.join("note.md");
+    fs::write(&input, "# Title\n\nBody").unwrap();
+    let expected_output = dir.join("note.html");
+
+    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("mdr"));
+    cmd.arg(&input)
+        .arg("-o")
+        .env("MDR_KATEX", katex_fixture_url())
+        .env(
+            "PATH",
+            format!(
+                "{}:{}",
+                dir.display(),
+                std::env::var("PATH").unwrap_or_default()
+            ),
+        );
+
+    cmd.assert().success();
+
+    let html = fs::read_to_string(&expected_output).expect("output exists");
+    assert!(html.contains("fake</html>"));
+    assert!(fs::metadata(&fake).unwrap().is_file());
+}
+
 fn ensure_real_pandoc_available() {
     let status = process::Command::new("pandoc")
         .arg("--version")
