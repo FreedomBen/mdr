@@ -5,7 +5,7 @@ template, CSS theme, and sidenote Lua filter. It lets you turn any Markdown file
 into a standalone HTML page with one command:
 
 ```bash
-mdr [-w|--watch] [-s|--serve] [--port <port>] [--host <host>] input.md [output.html]
+mdr [-w|--watch] [-s|--serve] [--port <port>] [--host <host>] [-n|--no-clobber] input.md [output.html]
 ```
 
 If you omit `output.html`, `mdr` swaps the extension of the input path. Override
@@ -18,6 +18,8 @@ the KaTeX CDN base with `MDR_KATEX=https://…/`.
   over WebSocket for live reload. Use `--port` to choose a different port.
   Use `--host 0.0.0.0` to bind on all interfaces, or `-P`/`--public` as a
   shortcut (also enables `--serve`).
+- `-n`/`--no-clobber` prompts before overwriting an existing output file; by
+  default `mdr` overwrites without asking.
 
 ## Developing
 

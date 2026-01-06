@@ -40,6 +40,7 @@ struct Config {
     serve: bool,
     port: u16,
     host: String,
+    no_clobber: bool,
     input_path: PathBuf,
     output_path: PathBuf,
 }
@@ -55,7 +56,9 @@ async fn run() -> Result<(), i32> {
     let config = parse_args()?;
     ensure_pandoc(&config.bin);
 
-    confirm_overwrite(&config.output_path, &config.bin);
+    if config.no_clobber {
+        confirm_overwrite(&config.output_path, &config.bin);
+    }
 
     let temp = match temp_root() {
         Ok(dir) => dir,
@@ -92,7 +95,7 @@ async fn run() -> Result<(), i32> {
 
 fn usage(bin: &str) {
     eprintln!(
-        "usage: {bin} [-w|--watch] [-s|--serve|-P|--public] [--port <port>] [--host <host>] <input.md> [output.html]"
+        "usage: {bin} [-w|--watch] [-s|--serve|-P|--public] [--port <port>] [--host <host>] [-n|--no-clobber] <input.md> [output.html]"
     );
 }
 
@@ -104,6 +107,7 @@ fn parse_args() -> Result<Config, i32> {
     let mut serve = false;
     let mut port: u16 = 8080;
     let mut host: String = "127.0.0.1".into();
+    let mut no_clobber = false;
     let mut positional: Vec<String> = Vec::new();
 
     while let Some(arg) = args.next() {
@@ -138,6 +142,7 @@ fn parse_args() -> Result<Config, i32> {
                 };
                 host = val;
             }
+            "-n" | "--no-clobber" => no_clobber = true,
             _ if arg.starts_with('-') => {
                 eprintln!("{bin}: unknown option: {arg}");
                 usage(&bin);
@@ -174,6 +179,7 @@ fn parse_args() -> Result<Config, i32> {
         serve,
         port,
         host,
+        no_clobber,
         input_path,
         output_path,
     })

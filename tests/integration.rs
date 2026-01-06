@@ -183,7 +183,7 @@ fn adds_fallback_title_and_embeds_resources() {
 }
 
 #[test]
-fn aborts_when_user_declines_overwrite() {
+fn overwrites_existing_file_by_default() {
     let tmp = tempdir().unwrap();
     let dir = tmp.path().to_path_buf();
     let fake = make_fake_pandoc(&dir);
@@ -196,6 +196,39 @@ fn aborts_when_user_declines_overwrite() {
 
     let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("mdr"));
     cmd.arg(&input)
+        .arg(&output)
+        .env("MDR_KATEX", katex_fixture_url())
+        .env(
+            "PATH",
+            format!(
+                "{}:{}",
+                dir.display(),
+                std::env::var("PATH").unwrap_or_default()
+            ),
+        );
+
+    cmd.assert().success();
+
+    let html = fs::read_to_string(&output).unwrap();
+    assert!(html.contains("fake</html>"));
+    assert!(fs::metadata(&fake).unwrap().is_file());
+}
+
+#[test]
+fn aborts_when_no_clobber_and_user_declines() {
+    let tmp = tempdir().unwrap();
+    let dir = tmp.path().to_path_buf();
+    let fake = make_fake_pandoc(&dir);
+
+    let input = dir.join("note.md");
+    fs::write(&input, "# Title\n\nBody").unwrap();
+
+    let output = dir.join("note.html");
+    fs::write(&output, "keep".as_bytes()).unwrap();
+
+    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("mdr"));
+    cmd.arg("--no-clobber")
+        .arg(&input)
         .arg(&output)
         .env("MDR_KATEX", katex_fixture_url())
         .env(
@@ -219,7 +252,7 @@ fn aborts_when_user_declines_overwrite() {
 }
 
 #[test]
-fn overwrites_when_user_confirms() {
+fn overwrites_when_no_clobber_and_user_confirms() {
     let tmp = tempdir().unwrap();
     let dir = tmp.path().to_path_buf();
     let fake = make_fake_pandoc(&dir);
@@ -231,7 +264,8 @@ fn overwrites_when_user_confirms() {
     fs::write(&output, "keep".as_bytes()).unwrap();
 
     let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("mdr"));
-    cmd.arg(&input)
+    cmd.arg("-n")
+        .arg(&input)
         .arg(&output)
         .env("MDR_KATEX", katex_fixture_url())
         .env(
