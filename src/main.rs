@@ -95,7 +95,7 @@ async fn run() -> Result<(), i32> {
 
 fn usage(bin: &str) {
     eprintln!(
-        "usage: {bin} [-w|--watch] [-s|--serve|-P|--public] [--port <port>] [--host <host>] [-n|--no-clobber] <input.md> [output.html]"
+        "usage: {bin} [-w|--watch] [-P|--public] [--port <port>] [--host <host>] [-o|--output <file>] [-n|--no-clobber] <input.md>"
     );
 }
 
@@ -108,14 +108,13 @@ fn parse_args() -> Result<Config, i32> {
     let mut port: u16 = 8080;
     let mut host: String = "127.0.0.1".into();
     let mut no_clobber = false;
+    let mut output: Option<PathBuf> = None;
     let mut positional: Vec<String> = Vec::new();
 
     while let Some(arg) = args.next() {
         match arg.as_str() {
             "-w" | "--watch" => watch = true,
-            "-s" | "--serve" => serve = true,
             "-P" | "--public" => {
-                serve = true;
                 host = "0.0.0.0".into();
             }
             "-h" | "--help" => {
@@ -143,6 +142,13 @@ fn parse_args() -> Result<Config, i32> {
                 host = val;
             }
             "-n" | "--no-clobber" => no_clobber = true,
+            "-o" | "--output" => {
+                let Some(val) = args.next() else {
+                    eprintln!("{bin}: --output requires a value");
+                    return Err(64);
+                };
+                output = Some(PathBuf::from(val));
+            }
             _ if arg.starts_with('-') => {
                 eprintln!("{bin}: unknown option: {arg}");
                 usage(&bin);
@@ -152,13 +158,14 @@ fn parse_args() -> Result<Config, i32> {
         }
     }
 
-    if positional.is_empty() || positional.len() > 2 {
+    if positional.len() != 1 {
         usage(&bin);
         return Err(64);
     }
 
     let input_path = PathBuf::from(&positional[0]);
-    let output_path = positional.get(1).map(PathBuf::from).unwrap_or_else(|| {
+    let output_provided = output.is_some();
+    let output_path = output.unwrap_or_else(|| {
         let mut derived = input_path.clone();
         derived.set_extension("html");
         derived
@@ -169,8 +176,10 @@ fn parse_args() -> Result<Config, i32> {
         return Err(64);
     }
 
-    if serve {
-        watch = true; // serving implies watching
+    // If the user did not request an explicit output, default to serve mode (with watch).
+    if !output_provided {
+        serve = true;
+        watch = true;
     }
 
     Ok(Config {

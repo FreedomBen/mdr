@@ -5,19 +5,22 @@ template, CSS theme, and sidenote Lua filter. It lets you turn any Markdown file
 into a standalone HTML page with one command:
 
 ```bash
-mdr [-w|--watch] [-s|--serve] [--port <port>] [--host <host>] [-n|--no-clobber] input.md [output.html]
+mdr [-w|--watch] [-P|--public] [--port <port>] [--host <host>] [-o|--output <file>] [-n|--no-clobber] input.md
 ```
 
-If you omit `output.html`, `mdr` swaps the extension of the input path. Override
-the KaTeX CDN base with `MDR_KATEX=https://…/`.
+If you pass `-o/--output`, `mdr` writes the converted HTML there and exits (or
+keeps watching with `-w`). If you omit `-o`, `mdr` serves the HTML over HTTP
+using a derived output path (input filename with `.html`). Override the KaTeX
+CDN base with `MDR_KATEX=https://…/`.
 
 - `-w`/`--watch` rebuilds the HTML whenever the input file changes (Linux first,
-  cross‑platform via `notify`).
-- `-s`/`--serve` starts a local server (default `127.0.0.1:8080`) that serves the
-  generated HTML, watches the source, rebuilds on change, and signals browsers
-  over WebSocket for live reload. Use `--port` to choose a different port.
-  Use `--host 0.0.0.0` to bind on all interfaces, or `-P`/`--public` as a
-  shortcut (also enables `--serve`).
+  cross‑platform via `notify`). With `-o`, it rewrites the output file; without
+  `-o`, it pairs with the default HTTP server.
+- Default server (when `-o` is omitted) serves the generated HTML with live
+  reload on `127.0.0.1:8080`. Use `--port` to choose a different port. Use
+  `--host 0.0.0.0` or `-P`/`--public` to bind on all interfaces.
+- `-o`/`--output` choose an explicit output file; skips HTTP server unless
+  combined with `--watch`.
 - `-n`/`--no-clobber` prompts before overwriting an existing output file; by
   default `mdr` overwrites without asking.
 
@@ -26,6 +29,8 @@ the KaTeX CDN base with `MDR_KATEX=https://…/`.
 - `make` / `make build` – build debug binary at `target/debug/mdr`
 - `make dist` – build a statically linked musl release binary (default target
   `x86_64-unknown-linux-musl`) into `dist/mdr`; set `TARGET` to override
+- `make install` – build release binary via `make dist` and copy it to
+  `~/bin/mdr` (creates `~/bin` if missing)
 - `make fmt` / `make lint` – format and run clippy (`-D warnings`)
 - `make test` – run unit + integration tests
 - `make watch-cli` – `cargo watch -x check -x test` (requires `cargo-watch`)

@@ -50,7 +50,7 @@ exit 0
 }
 
 #[test]
-fn writes_default_output_when_not_provided() {
+fn writes_output_when_flag_provided() {
     let tmp = tempdir().unwrap();
     let dir = tmp.path().to_path_buf();
     let fake = make_fake_pandoc(&dir);
@@ -58,19 +58,24 @@ fn writes_default_output_when_not_provided() {
     let input = dir.join("note.md");
     fs::write(&input, "# Title\n\nBody").unwrap();
 
+    let expected_output = dir.join("note.html");
+
     let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("mdr"));
-    cmd.arg(&input).env("MDR_KATEX", katex_fixture_url()).env(
-        "PATH",
-        format!(
-            "{}:{}",
-            dir.display(),
-            std::env::var("PATH").unwrap_or_default()
-        ),
-    );
+    cmd.arg("-o")
+        .arg(&expected_output)
+        .arg(&input)
+        .env("MDR_KATEX", katex_fixture_url())
+        .env(
+            "PATH",
+            format!(
+                "{}:{}",
+                dir.display(),
+                std::env::var("PATH").unwrap_or_default()
+            ),
+        );
 
     cmd.assert().success();
 
-    let expected_output = dir.join("note.html");
     let html = fs::read_to_string(&expected_output).expect("output exists");
     assert!(html.contains("fake</html>"));
 
@@ -104,8 +109,9 @@ fn real_pandoc_embeds_assets_and_template() {
     let output = dir.join("full.html");
 
     let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("mdr"));
-    cmd.arg(&input)
+    cmd.arg("-o")
         .arg(&output)
+        .arg(&input)
         .env("MDR_KATEX", katex_fixture_url());
     cmd.assert().success();
 
@@ -142,7 +148,7 @@ fn errors_when_pandoc_missing() {
     let output = dir.join("bar.html");
 
     let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("mdr"));
-    cmd.arg(&input).arg(&output).env("PATH", "");
+    cmd.arg("-o").arg(&output).arg(&input).env("PATH", "");
 
     cmd.assert()
         .failure()
@@ -158,20 +164,24 @@ fn adds_fallback_title_and_embeds_resources() {
 
     let input = dir.join("readme.md");
     fs::write(&input, "No title here").unwrap();
+    let output = dir.join("readme.html");
 
     let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("mdr"));
-    cmd.arg(&input).env("MDR_KATEX", katex_fixture_url()).env(
-        "PATH",
-        format!(
-            "{}:{}",
-            dir.display(),
-            std::env::var("PATH").unwrap_or_default()
-        ),
-    );
+    cmd.arg("-o")
+        .arg(&output)
+        .arg(&input)
+        .env("MDR_KATEX", katex_fixture_url())
+        .env(
+            "PATH",
+            format!(
+                "{}:{}",
+                dir.display(),
+                std::env::var("PATH").unwrap_or_default()
+            ),
+        );
 
     cmd.assert().success();
 
-    let output = dir.join("readme.html");
     let html = fs::read_to_string(&output).unwrap();
     assert!(html.contains("--embed-resources"));
     assert!(html.contains("--standalone"));
@@ -195,8 +205,9 @@ fn overwrites_existing_file_by_default() {
     fs::write(&output, "keep".as_bytes()).unwrap();
 
     let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("mdr"));
-    cmd.arg(&input)
+    cmd.arg("-o")
         .arg(&output)
+        .arg(&input)
         .env("MDR_KATEX", katex_fixture_url())
         .env(
             "PATH",
@@ -228,8 +239,9 @@ fn aborts_when_no_clobber_and_user_declines() {
 
     let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("mdr"));
     cmd.arg("--no-clobber")
-        .arg(&input)
+        .arg("-o")
         .arg(&output)
+        .arg(&input)
         .env("MDR_KATEX", katex_fixture_url())
         .env(
             "PATH",
@@ -265,8 +277,9 @@ fn overwrites_when_no_clobber_and_user_confirms() {
 
     let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("mdr"));
     cmd.arg("-n")
-        .arg(&input)
+        .arg("-o")
         .arg(&output)
+        .arg(&input)
         .env("MDR_KATEX", katex_fixture_url())
         .env(
             "PATH",
@@ -293,20 +306,24 @@ fn preserves_existing_title_metadata() {
 
     let input = dir.join("paper.md");
     fs::write(&input, "---\ntitle: Custom Paper\n---\n\nBody text.\n").unwrap();
+    let output = dir.join("paper.html");
 
     let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("mdr"));
-    cmd.arg(&input).env("MDR_KATEX", katex_fixture_url()).env(
-        "PATH",
-        format!(
-            "{}:{}",
-            dir.display(),
-            std::env::var("PATH").unwrap_or_default()
-        ),
-    );
+    cmd.arg("-o")
+        .arg(&output)
+        .arg(&input)
+        .env("MDR_KATEX", katex_fixture_url())
+        .env(
+            "PATH",
+            format!(
+                "{}:{}",
+                dir.display(),
+                std::env::var("PATH").unwrap_or_default()
+            ),
+        );
 
     cmd.assert().success();
 
-    let output = dir.join("paper.html");
     let html = fs::read_to_string(&output).unwrap();
     assert!(
         !html.contains("--metadata title="),
@@ -330,8 +347,9 @@ fn watch_rebuilds_on_change() {
 
     let mut child = process::Command::new(assert_cmd::cargo::cargo_bin!("mdr"))
         .arg("--watch")
-        .arg(&input)
+        .arg("-o")
         .arg(&output)
+        .arg(&input)
         .env("MDR_KATEX", katex_fixture_url())
         .env(
             "PATH",
@@ -402,18 +420,15 @@ fn serves_html_over_http() {
     let input = dir.join("note.md");
     fs::write(&input, "# Title\n\nBody").unwrap();
 
-    let output = dir.join("note.html");
     let Some(port) = pick_free_port() else {
         eprintln!("skipping serves_html_over_http: unable to bind loopback port");
         return;
     };
 
     let mut child = process::Command::new(assert_cmd::cargo::cargo_bin!("mdr"))
-        .arg("--serve")
         .arg("--port")
         .arg(port.to_string())
         .arg(&input)
-        .arg(&output)
         .env("MDR_KATEX", katex_fixture_url())
         .env(
             "PATH",

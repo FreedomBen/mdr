@@ -43,6 +43,11 @@ dist/$(BIN): Cargo.toml src/main.rs assets/template.html5 assets/css/theme.css a
 		mkdir -p dist; \
 		cp $(CARGO_TARGET_DIR)/$$TGT/release/$(BIN) dist/$(BIN)
 
+.PHONY: install
+install: dist/$(BIN)
+	mkdir -p $$HOME/bin
+	cp dist/$(BIN) $$HOME/bin/$(BIN)
+
 .PHONY: fmt
 fmt:
 	$(CARGO) fmt
