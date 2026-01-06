@@ -2,6 +2,7 @@
 
 - I'd like to add a simple webview-style GUI around the HTML.  What are some options for doing this?  I'd like some options for native webview such as with GTK on Gnome, and also maybe some options like using Tauri.  I prefer it to be lightweight but also like the idea of cross-platform, though linux/gnome support is by far the most important.  Please provide some options and compare/contrast their pros/cons
 
+- I'd like to modify the tool so when in default mode where it's binding to the web port, we don't actually write the .html file to the disk, but rather store it in memory and serve from there.  So we would only output the .html when the -o|--output flag is passed.  What are our options for this?
 
 # Already Run
 

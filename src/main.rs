@@ -4,6 +4,7 @@ use std::io::IsTerminal;
 use std::io::{self, Write};
 use std::path::{Path, PathBuf};
 use std::process::{self, Command};
+use std::sync::Arc;
 use std::time::{Duration, Instant};
 
 use axum::extract::ws::{Message, WebSocket, WebSocketUpgrade};
@@ -19,7 +20,7 @@ use notify::{
 };
 use tokio::net::TcpListener;
 use tokio::select;
-use tokio::sync::{broadcast, mpsc};
+use tokio::sync::{broadcast, mpsc, RwLock};
 
 const TEMPLATE_HTML: &str = include_str!("../assets/template.html5");
 const THEME_CSS: &str = include_str!("../assets/css/theme.css");
@@ -45,6 +46,15 @@ struct Config {
     no_clobber: bool,
     input_path: PathBuf,
     output_path: PathBuf,
+    write_output: bool,
+}
+
+type SharedHtml = Arc<RwLock<String>>;
+
+#[derive(Clone)]
+enum BuildTarget {
+    File(PathBuf),
+    Memory(SharedHtml),
 }
 
 #[tokio::main]
@@ -58,7 +68,7 @@ async fn run() -> Result<(), i32> {
     let config = parse_args()?;
     ensure_pandoc(&config.bin);
 
-    if config.no_clobber {
+    if config.no_clobber && config.write_output {
         confirm_overwrite(&config.output_path, &config.bin);
     }
 
@@ -78,17 +88,26 @@ async fn run() -> Result<(), i32> {
         }
     };
 
-    if let Err(code) = run_build_once(&config.input_path, &config.output_path, &assets).await {
-        cleanup(&temp);
-        return Err(code);
-    }
-
     let result = if config.serve {
-        run_serve_mode(&config, &assets).await
-    } else if config.watch {
-        run_watch_mode(&config, &assets).await
+        let html = Arc::new(RwLock::new(String::new()));
+
+        if let Err(code) = run_build_into_memory(&config.input_path, &assets, &html).await {
+            cleanup(&temp);
+            return Err(code);
+        }
+
+        run_serve_mode(&config, &assets, html).await
     } else {
-        Ok(())
+        if let Err(code) = run_build_once(&config.input_path, &config.output_path, &assets).await {
+            cleanup(&temp);
+            return Err(code);
+        }
+
+        if config.watch {
+            run_watch_mode(&config, &assets).await
+        } else {
+            Ok(())
+        }
     };
 
     cleanup(&temp);
@@ -111,9 +130,9 @@ fn usage(bin: &str) {
   {b}{bin}{r} [options] <input.md>
 
 {b}HOW IT BEHAVES{r}
-  - {b}No -o/--output{r}: serves and auto-rebuilds at http://127.0.0.1:8080 (watch + server on).
+  - {b}No -o/--output{r}: serves from memory and auto-rebuilds at http://127.0.0.1:8080 (watch + server on); no HTML file is written.
   - {b}With -o/--output{r}: writes once (or with -w, on every change); if you omit <file>, it uses the default name.
-  - Default output name is <input>.html next to your markdown.
+  - Default output name (when using -o without <file>) is <input>.html next to your markdown.
 
 {b}OPTIONS{r}
   {c}-w{r}, {c}--watch{r}           Rebuild on changes (implied in serve mode).
@@ -240,6 +259,7 @@ fn parse_args() -> Result<Config, i32> {
         no_clobber,
         input_path,
         output_path,
+        write_output: output_provided,
     })
 }
 
@@ -363,7 +383,7 @@ async fn run_build_once(input_path: &Path, output_path: &Path, assets: &Assets) 
     let output = output_path.to_path_buf();
     let assets = assets.clone();
 
-    tokio::task::spawn_blocking(move || build_once(&input, &output, &assets))
+    tokio::task::spawn_blocking(move || build_to_file(&input, &output, &assets))
         .await
         .map_err(|_| {
             eprintln!("mdr: build task panicked");
@@ -371,7 +391,69 @@ async fn run_build_once(input_path: &Path, output_path: &Path, assets: &Assets) 
         })?
 }
 
-fn build_once(input_path: &Path, output_path: &Path, assets: &Assets) -> Result<(), i32> {
+async fn run_build_into_memory(
+    input_path: &Path,
+    assets: &Assets,
+    html: &SharedHtml,
+) -> Result<(), i32> {
+    let input = input_path.to_path_buf();
+    let assets = assets.clone();
+
+    let rendered = tokio::task::spawn_blocking(move || build_to_string(&input, &assets))
+        .await
+        .map_err(|_| {
+            eprintln!("mdr: build task panicked");
+            1
+        })??;
+
+    let mut buf = html.write().await;
+    *buf = rendered;
+    Ok(())
+}
+
+fn build_to_file(input_path: &Path, output_path: &Path, assets: &Assets) -> Result<(), i32> {
+    let mut cmd = make_pandoc_command(input_path, assets, Some(output_path));
+    let status = cmd.status();
+
+    match status {
+        Ok(code) if code.success() => Ok(()),
+        Ok(code) => {
+            let code = code.code().unwrap_or(-1);
+            eprintln!("mdr: pandoc failed with exit code {code}");
+            Err(code)
+        }
+        Err(err) => {
+            eprintln!("mdr: failed to spawn pandoc: {err}");
+            Err(127)
+        }
+    }
+}
+
+fn build_to_string(input_path: &Path, assets: &Assets) -> Result<String, i32> {
+    let mut cmd = make_pandoc_command(input_path, assets, None);
+    let output = cmd.output();
+
+    match output {
+        Ok(out) if out.status.success() => match String::from_utf8(out.stdout) {
+            Ok(html) => Ok(html),
+            Err(err) => {
+                eprintln!("mdr: pandoc output was not valid UTF-8: {err}");
+                Err(1)
+            }
+        },
+        Ok(out) => {
+            let code = out.status.code().unwrap_or(-1);
+            eprintln!("mdr: pandoc failed with exit code {code}");
+            Err(code)
+        }
+        Err(err) => {
+            eprintln!("mdr: failed to spawn pandoc: {err}");
+            Err(127)
+        }
+    }
+}
+
+fn make_pandoc_command(input_path: &Path, assets: &Assets, output_path: Option<&Path>) -> Command {
     let mut cmd = Command::new("pandoc");
     cmd.arg(format!("--katex={}", katex_url()))
         .arg("--from")
@@ -398,24 +480,24 @@ fn build_once(input_path: &Path, output_path: &Path, assets: &Assets) -> Result<
         .arg("--css")
         .arg(&assets.skylighting_path)
         .arg("--toc")
-        .arg("--wrap=none")
-        .arg("--output")
-        .arg(output_path)
-        .arg(input_path);
+        .arg("--wrap=none");
 
-    let status = cmd.status();
+    if let Some(out) = output_path {
+        cmd.arg("--output").arg(out);
+    }
 
-    match status {
-        Ok(code) if code.success() => Ok(()),
-        Ok(code) => {
-            let code = code.code().unwrap_or(-1);
-            eprintln!("mdr: pandoc failed with exit code {code}");
-            Err(code)
-        }
-        Err(err) => {
-            eprintln!("mdr: failed to spawn pandoc: {err}");
-            Err(127)
-        }
+    cmd.arg(input_path);
+    cmd
+}
+
+async fn build_to_target(
+    input_path: &Path,
+    assets: &Assets,
+    target: &BuildTarget,
+) -> Result<(), i32> {
+    match target {
+        BuildTarget::File(path) => run_build_once(input_path, path, assets).await,
+        BuildTarget::Memory(html) => run_build_into_memory(input_path, assets, html).await,
     }
 }
 
@@ -429,27 +511,27 @@ async fn run_watch_mode(config: &Config, assets: &Assets) -> Result<(), i32> {
     watch_and_rebuild(
         config.bin.clone(),
         config.input_path.clone(),
-        config.output_path.clone(),
         assets.clone(),
+        BuildTarget::File(config.output_path.clone()),
         None,
     )
     .await
 }
 
-async fn run_serve_mode(config: &Config, assets: &Assets) -> Result<(), i32> {
+async fn run_serve_mode(config: &Config, assets: &Assets, html: SharedHtml) -> Result<(), i32> {
     let (reload_tx, _) = broadcast::channel(32);
 
     let mut watch_handle = tokio::spawn(watch_and_rebuild(
         config.bin.clone(),
         config.input_path.clone(),
-        config.output_path.clone(),
         assets.clone(),
+        BuildTarget::Memory(html.clone()),
         Some(reload_tx.clone()),
     ));
 
     let mut server_handle = tokio::spawn(run_http_server(
         config.bin.clone(),
-        config.output_path.clone(),
+        html,
         config.port,
         config.host.clone(),
         reload_tx,
@@ -469,8 +551,8 @@ async fn run_serve_mode(config: &Config, assets: &Assets) -> Result<(), i32> {
 async fn watch_and_rebuild(
     bin: String,
     input_path: PathBuf,
-    output_path: PathBuf,
     assets: Assets,
+    target: BuildTarget,
     reload_tx: Option<broadcast::Sender<()>>,
 ) -> Result<(), i32> {
     let (tx, mut rx) = mpsc::unbounded_channel();
@@ -541,7 +623,7 @@ async fn watch_and_rebuild(
                             continue;
                         }
 
-                        if let Err(code) = run_build_once(&input_path, &output_path, &assets).await {
+                        if let Err(code) = build_to_target(&input_path, &assets, &target).await {
                             if code == 127 {
                                 return Err(code);
                             }
@@ -571,7 +653,7 @@ async fn watch_and_rebuild(
 
 async fn run_http_server(
     bin: String,
-    output_path: PathBuf,
+    html: SharedHtml,
     port: u16,
     host: String,
     reload_tx: broadcast::Sender<()>,
@@ -588,15 +670,9 @@ async fn run_http_server(
         1
     })?;
 
-    eprintln!(
-        "{bin}: serving {} at http://{addr}/ (live reload enabled)",
-        output_path.display()
-    );
+    eprintln!("{bin}: serving in-memory HTML at http://{addr}/ (live reload enabled)");
 
-    let state = AppState {
-        output_path,
-        reload_tx,
-    };
+    let state = AppState { html, reload_tx };
 
     let app = Router::new()
         .route("/", get(serve_output))
@@ -612,31 +688,21 @@ async fn run_http_server(
 
 #[derive(Clone)]
 struct AppState {
-    output_path: PathBuf,
+    html: SharedHtml,
     reload_tx: broadcast::Sender<()>,
 }
 
 async fn serve_output(State(state): State<AppState>) -> impl IntoResponse {
-    match tokio::fs::read_to_string(&state.output_path).await {
-        Ok(mut html) => {
-            if !html.contains("/live.js") {
-                html.push_str("\n<script src=\"/live.js\"></script>\n");
-            }
-            (
-                StatusCode::OK,
-                [(header::CONTENT_TYPE, "text/html; charset=utf-8")],
-                html,
-            )
-                .into_response()
-        }
-        Err(err) => {
-            eprintln!(
-                "mdr: failed to read output {}: {err}",
-                state.output_path.display()
-            );
-            (StatusCode::NOT_FOUND, "output not found").into_response()
-        }
+    let mut html = state.html.read().await.clone();
+    if !html.contains("/live.js") {
+        html.push_str("\n<script src=\"/live.js\"></script>\n");
     }
+
+    (
+        StatusCode::OK,
+        [(header::CONTENT_TYPE, "text/html; charset=utf-8")],
+        html,
+    )
 }
 
 async fn live_js() -> impl IntoResponse {

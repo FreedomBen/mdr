@@ -3,7 +3,7 @@
 #
 # Quick start:
 #   make            # build debug binary (target/debug/mdr)
-#   make test       # run unit/integration tests
+#   make test       # run all tests (Rust + e2e)
 #   make dist       # build release binary into dist/mdr
 #   make site       # rebuild docs/ from site/src markdown
 #   make watch      # serve docs/ and rebuild on changes
@@ -60,12 +60,17 @@ lint:
 .PHONY: test
 test:
 	$(CARGO) test
+	$(MAKE) test-e2e
 
 .PHONY: test-all
-test-all: test test-integration
+test-all: test
 
 .PHONY: test-integration
-test-integration: build
+test-integration:
+	$(CARGO) test --tests
+
+.PHONY: test-e2e
+test-e2e: build
 	$(RUBY) tests/e2e/test_mdr_e2e.rb
 
 .PHONY: watch-cli

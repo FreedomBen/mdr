@@ -9,16 +9,16 @@ mdr [-w|--watch] [-P|--public] [--port <port>] [--host <host>] [-o|--output <fil
 ```
 
 If you pass `-o/--output`, `mdr` writes the converted HTML there and exits (or
-keeps watching with `-w`). If you omit `-o`, `mdr` serves the HTML over HTTP
-using a derived output path (input filename with `.html`). Passing `-o` with no
-path also uses the derived output path. Override the KaTeX
+keeps watching with `-w`). If you omit `-o`, `mdr` renders to memory and serves
+the HTML over HTTP (no disk writes). Passing `-o` with no path uses the derived
+output path (input filename with `.html`). Override the KaTeX
 CDN base with `MDR_KATEX=https://…/`.
 
 - `-w`/`--watch` rebuilds the HTML whenever the input file changes (Linux first,
   cross‑platform via `notify`). With `-o`, it rewrites the output file; without
   `-o`, it pairs with the default HTTP server.
-- Default server (when `-o` is omitted) serves the generated HTML with live
-  reload on `127.0.0.1:8080`. Use `--port` to choose a different port. Use
+- Default server (when `-o` is omitted) serves the generated HTML from memory
+  with live reload on `127.0.0.1:8080`. Use `--port` to choose a different port. Use
   `--host 0.0.0.0` or `-P`/`--public` to bind on all interfaces.
 - `-o`/`--output` choose an explicit output file; skips HTTP server unless
   combined with `--watch`.
@@ -33,7 +33,9 @@ CDN base with `MDR_KATEX=https://…/`.
 - `make install` – build release binary via `make dist` and copy it to
   `~/bin/mdr` (creates `~/bin` if missing)
 - `make fmt` / `make lint` – format and run clippy (`-D warnings`)
-- `make test` – run unit + integration tests
+- `make test` – run all tests (Rust + Ruby e2e)
+- `make test-integration` – run Rust integration tests only
+- `make test-e2e` – run Ruby end-to-end tests
 - `make watch-cli` – `cargo watch -x check -x test` (requires `cargo-watch`)
 
 ## Assets
