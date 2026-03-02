@@ -42,6 +42,7 @@ struct Config {
     watch: bool,
     serve: bool,
     port: u16,
+    port_explicit: bool,
     host: String,
     no_clobber: bool,
     input_path: PathBuf,
@@ -130,14 +131,14 @@ fn usage(bin: &str) {
   {b}{bin}{r} [options] <input.md>
 
 {b}HOW IT BEHAVES{r}
-  - {b}No -o/--output{r}: serves from memory and auto-rebuilds at http://127.0.0.1:8080 (watch + server on); no HTML file is written.
+  - {b}No -o/--output{r}: serves from memory and auto-rebuilds at http://127.0.0.1:8080 (watch + server on); if 8080 is busy, it tries 8081, 8082, ...; no HTML file is written.
   - {b}With -o/--output{r}: writes once (or with -w, on every change); if you omit <file>, it uses the default name.
   - Default output name (when using -o without <file>) is <input>.html next to your markdown.
 
 {b}OPTIONS{r}
   {c}-w{r}, {c}--watch{r}           Rebuild on changes (implied in serve mode).
   {c}-P{r}, {c}--public{r}          Bind to 0.0.0.0 so other devices can view the preview.
-  {c}--port{r} <port>         HTTP port for the preview server ({d}default 8080{r}).
+  {c}--port{r} <port>         HTTP port for the preview server ({d}default 8080{r}; explicit value disables auto-increment fallback).
   {c}--host{r} <host>         Host/interface to bind ({d}default 127.0.0.1{r}).
   {c}-o{r}, {c}--output{r} [<file>] Output HTML path; omit <file> to keep the default name.
   {c}-n{r}, {c}--no-clobber{r}      Ask before overwriting an existing output file.
@@ -167,6 +168,7 @@ fn parse_args() -> Result<Config, i32> {
     let mut watch = false;
     let mut serve = false;
     let mut port: u16 = 8080;
+    let mut port_explicit = false;
     let mut host: String = "127.0.0.1".into();
     let mut no_clobber = false;
     let mut output: Option<PathBuf> = None;
@@ -192,6 +194,7 @@ fn parse_args() -> Result<Config, i32> {
                     eprintln!("{bin}: --port requires a value");
                     return Err(64);
                 };
+                port_explicit = true;
                 port = match val.parse::<u16>() {
                     Ok(p) => p,
                     Err(_) => {
@@ -255,6 +258,7 @@ fn parse_args() -> Result<Config, i32> {
         watch,
         serve,
         port,
+        port_explicit,
         host,
         no_clobber,
         input_path,
@@ -533,6 +537,7 @@ async fn run_serve_mode(config: &Config, assets: &Assets, html: SharedHtml) -> R
         config.bin.clone(),
         html,
         config.port,
+        config.port_explicit,
         config.host.clone(),
         reload_tx,
     ));
@@ -655,10 +660,11 @@ async fn run_http_server(
     bin: String,
     html: SharedHtml,
     port: u16,
+    port_explicit: bool,
     host: String,
     reload_tx: broadcast::Sender<()>,
 ) -> Result<(), i32> {
-    let listener = TcpListener::bind((host.as_str(), port))
+    let listener = bind_http_listener(host.as_str(), port, !port_explicit)
         .await
         .map_err(|err| {
             eprintln!("mdr: failed to bind HTTP server: {err}");
@@ -669,6 +675,14 @@ async fn run_http_server(
         eprintln!("mdr: failed to read server address: {err}");
         1
     })?;
+
+    if !port_explicit && addr.port() != port {
+        eprintln!(
+            "{bin}: port {port} is in use; serving instead on http://{}:{}/",
+            host,
+            addr.port()
+        );
+    }
 
     eprintln!("{bin}: serving in-memory HTML at http://{addr}/ (live reload enabled)");
 
@@ -684,6 +698,28 @@ async fn run_http_server(
         eprintln!("mdr: server error: {err}");
         1
     })
+}
+
+async fn bind_http_listener(
+    host: &str,
+    port: u16,
+    retry_on_addr_in_use: bool,
+) -> io::Result<TcpListener> {
+    let mut candidate = port;
+
+    loop {
+        match TcpListener::bind((host, candidate)).await {
+            Ok(listener) => return Ok(listener),
+            Err(err)
+                if retry_on_addr_in_use
+                    && err.kind() == io::ErrorKind::AddrInUse
+                    && candidate < u16::MAX =>
+            {
+                candidate += 1;
+            }
+            Err(err) => return Err(err),
+        }
+    }
 }
 
 #[derive(Clone)]
@@ -804,4 +840,44 @@ fn write_file(path: &Path, contents: &str) -> io::Result<()> {
     }
     let mut file = File::create(path)?;
     file.write_all(contents.as_bytes())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::net::TcpListener as StdTcpListener;
+
+    fn reserve_port() -> (u16, StdTcpListener) {
+        loop {
+            let listener =
+                StdTcpListener::bind(("127.0.0.1", 0)).expect("bind temporary test listener");
+            let port = listener.local_addr().expect("local addr").port();
+            if port < u16::MAX {
+                return (port, listener);
+            }
+        }
+    }
+
+    #[tokio::test]
+    async fn bind_http_listener_retries_when_port_is_in_use() {
+        let (port, _occupied) = reserve_port();
+
+        let listener = bind_http_listener("127.0.0.1", port, true)
+            .await
+            .expect("should bind after retrying");
+        let bound_port = listener.local_addr().expect("local addr").port();
+
+        assert!(bound_port > port, "expected a higher fallback port");
+    }
+
+    #[tokio::test]
+    async fn bind_http_listener_respects_explicit_port() {
+        let (port, _occupied) = reserve_port();
+
+        let err = bind_http_listener("127.0.0.1", port, false)
+            .await
+            .expect_err("should fail without retries");
+
+        assert_eq!(err.kind(), io::ErrorKind::AddrInUse);
+    }
 }

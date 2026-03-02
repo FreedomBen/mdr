@@ -18,8 +18,10 @@ CDN base with `MDR_KATEX=https://…/`.
   cross‑platform via `notify`). With `-o`, it rewrites the output file; without
   `-o`, it pairs with the default HTTP server.
 - Default server (when `-o` is omitted) serves the generated HTML from memory
-  with live reload on `127.0.0.1:8080`. Use `--port` to choose a different port. Use
-  `--host 0.0.0.0` or `-P`/`--public` to bind on all interfaces.
+  with live reload on `127.0.0.1:8080`; if that port is already busy, `mdr`
+  tries the next port (`8081`, `8082`, ...). Use `--port` to choose a
+  specific port (no fallback). Use `--host 0.0.0.0` or `-P`/`--public` to bind
+  on all interfaces.
 - `-o`/`--output` choose an explicit output file; skips HTTP server unless
   combined with `--watch`.
 - `-n`/`--no-clobber` prompts before overwriting an existing output file; by
