@@ -33,6 +33,8 @@ class MdrEndToEndTest < Minitest::Test
 
       actual = File.read(output)
       expected = File.read(EXPECTED_HTML)
+      actual = normalize_html_for_comparison(actual)
+      expected = normalize_html_for_comparison(expected)
       assert_equal expected, actual, "converted HTML did not match expected fixture"
     end
   end
@@ -51,6 +53,8 @@ class MdrEndToEndTest < Minitest::Test
         assert_equal "200", response.code, "server responded with #{response.code}" if response
         expected_body = with_live_script(File.read(EXPECTED_HTML)).force_encoding("UTF-8")
         actual_body = response.body.dup.force_encoding("UTF-8")
+        expected_body = normalize_html_for_comparison(expected_body)
+        actual_body = normalize_html_for_comparison(actual_body)
         assert_equal expected_body, actual_body
       ensure
         Process.kill("TERM", pid) rescue nil
@@ -109,5 +113,11 @@ class MdrEndToEndTest < Minitest::Test
 
   def with_live_script(html)
     html.include?("/live.js") ? html : "#{html}\n<script src=\"/live.js\"></script>\n"
+  end
+
+  # Pandoc changed table row class emission in newer versions.
+  # Normalize those optional classes so fixture comparison remains stable.
+  def normalize_html_for_comparison(html)
+    html.gsub(/<tr class=\"(?:header|odd|even)\">/, "<tr>")
   end
 end
