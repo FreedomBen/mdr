@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cargo build:*)",
+      "Bash(weasyprint:*)",
+      "Bash(cargo run:*)",
+      "Read(//tmp/**)",
+      "Bash(cargo test:*)",
+      "Bash(make lint:*)",
+      "Bash(make test-integration:*)",
+      "Bash(timeout 2 ./target/debug/mdr /tmp/test-mdr.html)",
+      "Bash(echo \"exit: $?\")"
+    ]
+  }
+}

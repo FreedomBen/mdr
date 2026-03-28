@@ -67,51 +67,77 @@ async fn main() {
 
 async fn run() -> Result<(), i32> {
     let config = parse_args()?;
-    ensure_pandoc(&config.bin);
+    let is_html = is_html_input(&config.input_path);
+
+    if !is_html {
+        ensure_pandoc(&config.bin);
+    }
 
     if config.no_clobber && config.write_output {
         confirm_overwrite(&config.output_path, &config.bin);
     }
 
-    let temp = match temp_root() {
-        Ok(dir) => dir,
-        Err(err) => {
-            eprintln!("mdr: failed to create temp dir: {err}");
-            return Err(1);
-        }
-    };
-
-    let assets = match materialize_assets(&temp) {
-        Ok(a) => a,
-        Err(code) => {
-            cleanup(&temp);
-            return Err(code);
-        }
+    let (temp, assets): (Option<PathBuf>, Option<Assets>) = if is_html {
+        (None, None)
+    } else {
+        let t = match temp_root() {
+            Ok(dir) => dir,
+            Err(err) => {
+                eprintln!("mdr: failed to create temp dir: {err}");
+                return Err(1);
+            }
+        };
+        let a = match materialize_assets(&t) {
+            Ok(a) => a,
+            Err(code) => {
+                cleanup(&t);
+                return Err(code);
+            }
+        };
+        (Some(t), Some(a))
     };
 
     let result = if config.serve {
         let html = Arc::new(RwLock::new(String::new()));
 
-        if let Err(code) = run_build_into_memory(&config.input_path, &assets, &html).await {
-            cleanup(&temp);
+        if let Err(code) = build_to_target(
+            &config.input_path,
+            assets.as_ref(),
+            &BuildTarget::Memory(html.clone()),
+        )
+        .await
+        {
+            if let Some(ref t) = temp {
+                cleanup(t);
+            }
             return Err(code);
         }
 
-        run_serve_mode(&config, &assets, html).await
+        run_serve_mode(&config, assets, html).await
     } else {
-        if let Err(code) = run_build_once(&config.input_path, &config.output_path, &assets).await {
-            cleanup(&temp);
+        if let Err(code) = build_to_target(
+            &config.input_path,
+            assets.as_ref(),
+            &BuildTarget::File(config.output_path.clone()),
+        )
+        .await
+        {
+            if let Some(ref t) = temp {
+                cleanup(t);
+            }
             return Err(code);
         }
 
         if config.watch {
-            run_watch_mode(&config, &assets).await
+            run_watch_mode(&config, assets).await
         } else {
             Ok(())
         }
     };
 
-    cleanup(&temp);
+    if let Some(ref t) = temp {
+        cleanup(t);
+    }
     result
 }
 
@@ -128,12 +154,13 @@ fn usage(bin: &str) {
 {b}{c}{bin}{r} {d}(v{VERSION}){r} - Markdown to HTML renderer with live preview
 
 {b}USAGE{r}
-  {b}{bin}{r} [options] <input.md>
+  {b}{bin}{r} [options] <input.md | input.html>
 
 {b}HOW IT BEHAVES{r}
   - {b}No -o/--output{r}: serves from memory and auto-rebuilds at http://127.0.0.1:8080 (watch + server on); if 8080 is busy, it tries 8081, 8082, ...; no HTML file is written.
   - {b}With -o/--output{r}: writes once (or with -w, on every change); if you omit <file>, it uses the default name.
   - Default output name (when using -o without <file>) is <input>.html next to your markdown.
+  - {b}HTML input{r} (.html, .htm): served or written directly without Pandoc conversion.
 
 {b}OPTIONS{r}
   {c}-w{r}, {c}--watch{r}           Rebuild on changes (implied in serve mode).
@@ -496,16 +523,49 @@ fn make_pandoc_command(input_path: &Path, assets: &Assets, output_path: Option<&
 
 async fn build_to_target(
     input_path: &Path,
-    assets: &Assets,
+    assets: Option<&Assets>,
     target: &BuildTarget,
 ) -> Result<(), i32> {
-    match target {
-        BuildTarget::File(path) => run_build_once(input_path, path, assets).await,
-        BuildTarget::Memory(html) => run_build_into_memory(input_path, assets, html).await,
+    match (target, assets) {
+        (BuildTarget::File(path), Some(assets)) => run_build_once(input_path, path, assets).await,
+        (BuildTarget::File(path), None) => copy_html_file(input_path, path),
+        (BuildTarget::Memory(html), Some(assets)) => {
+            run_build_into_memory(input_path, assets, html).await
+        }
+        (BuildTarget::Memory(html), None) => read_html_into_memory(input_path, html).await,
     }
 }
 
-async fn run_watch_mode(config: &Config, assets: &Assets) -> Result<(), i32> {
+fn is_html_input(path: &Path) -> bool {
+    matches!(
+        path.extension().and_then(|e| e.to_str()),
+        Some("html" | "htm")
+    )
+}
+
+async fn read_html_into_memory(input_path: &Path, html: &SharedHtml) -> Result<(), i32> {
+    let content = fs::read_to_string(input_path).map_err(|err| {
+        eprintln!("mdr: failed to read {}: {err}", input_path.display());
+        1
+    })?;
+    let mut buf = html.write().await;
+    *buf = content;
+    Ok(())
+}
+
+fn copy_html_file(input_path: &Path, output_path: &Path) -> Result<(), i32> {
+    fs::copy(input_path, output_path).map_err(|err| {
+        eprintln!(
+            "mdr: failed to copy {} to {}: {err}",
+            input_path.display(),
+            output_path.display()
+        );
+        1
+    })?;
+    Ok(())
+}
+
+async fn run_watch_mode(config: &Config, assets: Option<Assets>) -> Result<(), i32> {
     eprintln!(
         "{}: watching {} for changes (press Ctrl+C to stop)",
         config.bin,
@@ -515,20 +575,20 @@ async fn run_watch_mode(config: &Config, assets: &Assets) -> Result<(), i32> {
     watch_and_rebuild(
         config.bin.clone(),
         config.input_path.clone(),
-        assets.clone(),
+        assets,
         BuildTarget::File(config.output_path.clone()),
         None,
     )
     .await
 }
 
-async fn run_serve_mode(config: &Config, assets: &Assets, html: SharedHtml) -> Result<(), i32> {
+async fn run_serve_mode(config: &Config, assets: Option<Assets>, html: SharedHtml) -> Result<(), i32> {
     let (reload_tx, _) = broadcast::channel(32);
 
     let mut watch_handle = tokio::spawn(watch_and_rebuild(
         config.bin.clone(),
         config.input_path.clone(),
-        assets.clone(),
+        assets,
         BuildTarget::Memory(html.clone()),
         Some(reload_tx.clone()),
     ));
@@ -556,7 +616,7 @@ async fn run_serve_mode(config: &Config, assets: &Assets, html: SharedHtml) -> R
 async fn watch_and_rebuild(
     bin: String,
     input_path: PathBuf,
-    assets: Assets,
+    assets: Option<Assets>,
     target: BuildTarget,
     reload_tx: Option<broadcast::Sender<()>>,
 ) -> Result<(), i32> {
@@ -628,7 +688,7 @@ async fn watch_and_rebuild(
                             continue;
                         }
 
-                        if let Err(code) = build_to_target(&input_path, &assets, &target).await {
+                        if let Err(code) = build_to_target(&input_path, assets.as_ref(), &target).await {
                             if code == 127 {
                                 return Err(code);
                             }
