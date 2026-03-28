@@ -80,3 +80,25 @@ watch-cli:
 .PHONY: clean
 clean:
 	rm -rf dist
+
+.PHONY: help
+help:
+	@echo "Usage: make [target]"
+	@echo ""
+	@echo "Build:"
+	@echo "  build          Build debug binary (default)"
+	@echo "  dist           Build release binary (static musl) into dist/"
+	@echo "  install        Install release binary to ~/bin"
+	@echo "  clean          Remove dist/"
+	@echo ""
+	@echo "Quality:"
+	@echo "  fmt            Run cargo fmt"
+	@echo "  lint           Run clippy with -D warnings"
+	@echo ""
+	@echo "Test:"
+	@echo "  test           Run all tests (Rust + e2e)"
+	@echo "  test-integration  Run Rust integration tests only"
+	@echo "  test-e2e       Run Ruby e2e tests (builds debug binary first)"
+	@echo ""
+	@echo "Dev:"
+	@echo "  watch-cli      Watch mode: re-check and re-test on changes"

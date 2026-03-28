@@ -9,7 +9,8 @@
       "Bash(make lint:*)",
       "Bash(make test-integration:*)",
       "Bash(timeout 2 ./target/debug/mdr /tmp/test-mdr.html)",
-      "Bash(echo \"exit: $?\")"
+      "Bash(echo \"exit: $?\")",
+      "Bash(make help:*)"
     ]
   }
 }
